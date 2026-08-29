@@ -39,5 +39,6 @@ export const config = {
   whisperMinHours,
   whisperMaxHours,
   whisperChannelId: process.env.DISCORD_WHISPER_CHANNEL_ID || undefined,
-  whisperStatePath: process.env.WHISPER_STATE_PATH || "data/whisper-state.json"
+  whisperStatePath: process.env.WHISPER_STATE_PATH || "data/whisper-state.json",
+  databaseUrl: process.env.DATABASE_URL || undefined
 };
