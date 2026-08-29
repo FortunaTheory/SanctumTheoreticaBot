@@ -43,7 +43,7 @@ export type Catalog = {
 };
 
 const revisionSchema = z.object({
-	id: z.number(),
+	id: z.coerce.number().int().positive(),
 	resourceType: z.enum(['oracle', 'fragment', 'profile']),
 	resourceId: z.string().uuid(),
 	action: z.enum(['create', 'update', 'delete', 'restore']),
