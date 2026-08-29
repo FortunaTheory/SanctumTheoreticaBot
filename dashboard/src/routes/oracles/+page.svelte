@@ -33,7 +33,7 @@
 </main>
 
 <style>
-	main { min-height: 100vh; background: linear-gradient(118deg, rgba(79, 50, 83, .13), transparent 42%), repeating-linear-gradient(0deg, rgba(58, 37, 61, .045) 0 1px, transparent 1px 5px); }
+	main { min-height: 100vh; background: linear-gradient(118deg, rgba(101, 48, 139, .2), transparent 42%), repeating-linear-gradient(0deg, rgba(160, 97, 208, .07) 0 1px, transparent 1px 5px); }
 	header { height: 66px; display: flex; gap: 1rem; align-items: center; padding: 0 5vw; border-bottom: 1px solid var(--line); }
 	header a { display: grid; place-items: center; color: var(--ink); }
 	.brand { display: flex; gap: .6rem; align-items: center; font: .78rem var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
@@ -47,14 +47,14 @@
 	.editor { display: grid; gap: 1.25rem; padding: 1.5rem; }
 	.section-label { display: flex; gap: .5rem; align-items: center; color: var(--ink); }
 	label { display: grid; gap: .5rem; font-size: .95rem; }
-	select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 0; padding: .75rem; color: var(--ink); background: #f8f5f7; font: inherit; }
+	select, textarea { width: 100%; border: 1px solid var(--line); border-radius: .25rem; padding: .75rem; color: var(--ink); background: var(--surface-sunken); font: inherit; }
 	textarea { min-height: 180px; resize: vertical; line-height: 1.5; }
 	.count, .hint { justify-self: end; color: var(--ink-muted); font: .7rem var(--font-ui); }
 	button { display: inline-flex; justify-content: center; gap: .55rem; align-items: center; width: max-content; border: 0; padding: .8rem 1rem; color: white; background: var(--surface-deep); cursor: pointer; font: .75rem var(--font-ui); letter-spacing: .04em; text-transform: uppercase; }
-	.error { margin: 0; color: var(--danger); } .success { margin: 0; color: #326049; }
+	.error { margin: 0; color: #ffc0d2; } .success { margin: 0; color: var(--success); }
 	.preview { padding: 1.5rem; }
 	.embed { margin-top: 1.25rem; border-left: 4px solid var(--accent); padding: 1rem; color: #dbdee1; background: #2b2d31; font-family: Arial, sans-serif; }
 	.embed-title { font-weight: 700; font-size: .95rem; }.embed-body { margin-top: .8rem; font-size: .86rem; line-height: 1.5; }.embed-body blockquote { margin: .8rem 0; padding-left: .7rem; border-left: 2px solid #4e5058; font-style: italic; }.embed-footer { color: #949ba4; font-size: .72rem; }
-	.entries { margin-top: 3rem; padding: 1.5rem; }.entry-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; margin-top: 1.2rem; background: var(--line); border: 1px solid var(--line); }.entry-list article { position: relative; padding: 1rem; background: #f8f5f7; }.entry-list p { margin: .75rem 0 0; line-height: 1.5; }.aspect { color: var(--ink-soft); font: .68rem var(--font-ui); text-transform: uppercase; }.aspect.lucid { color: #366a71; }.aspect.enigma { color: #8f4d69; }.empty { color: var(--ink-muted); } code { font-family: var(--font-ui); } details { margin-top: 1rem; } summary { display: inline-flex; gap: .35rem; align-items: center; cursor: pointer; font: .72rem var(--font-ui); }.edit-form { display: grid; gap: .7rem; margin-top: .8rem; }.edit-form label { font-size: .78rem; }.edit-form select, .edit-form textarea, .edit-form input { width: 100%; padding: .5rem; border: 1px solid var(--line); background: #fff; font: inherit; }.edit-form textarea { min-height: 100px; }.edit-form button { padding: .55rem .7rem; }.delete-form { position: absolute; top: .8rem; right: .8rem; }.delete-form button { padding: .35rem; color: var(--danger); background: transparent; }
+	.entries { margin-top: 3rem; padding: 1.5rem; }.entry-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; margin-top: 1.2rem; background: var(--line); border: 1px solid var(--line); }.entry-list article { position: relative; padding: 1rem; background: var(--surface-sunken); }.entry-list p { margin: .75rem 0 0; line-height: 1.5; }.aspect { color: var(--ink-soft); font: .68rem var(--font-ui); text-transform: uppercase; }.aspect.lucid { color: #70c5c9; }.aspect.enigma { color: #f08caf; }.empty { color: var(--ink-muted); } code { font-family: var(--font-ui); } details { margin-top: 1rem; } summary { display: inline-flex; gap: .35rem; align-items: center; cursor: pointer; font: .72rem var(--font-ui); }.edit-form { display: grid; gap: .7rem; margin-top: .8rem; }.edit-form label { font-size: .78rem; }.edit-form select, .edit-form textarea, .edit-form input { width: 100%; padding: .5rem; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }.edit-form textarea { min-height: 100px; }.edit-form button { padding: .55rem .7rem; }.delete-form { position: absolute; top: .8rem; right: .8rem; }.delete-form button { padding: .35rem; color: var(--danger); background: transparent; }
 	@media (max-width: 760px) { .grid { grid-template-columns: 1fr; gap: 1rem; } .shell { margin-top: 2.5rem; } }
 </style>
