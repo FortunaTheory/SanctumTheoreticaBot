@@ -1,5 +1,5 @@
 import { AttachmentBuilder, EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
-import { choose, fragmentEntries } from "../lore.js";
+import { getFragment } from "../lore.js";
 import { normalizeDecal } from "../assets.js";
 import { aspectDesign } from "../design.js";
 import { consumeFragmentEasterEgg } from "../easter-eggs.js";
@@ -37,8 +37,8 @@ export const fragmentCommand = {
       return;
     }
 
-    const entry = choose(fragmentEntries);
-      const image = entry.image ? await normalizeDecal("fragment-visuals", entry.image) : undefined;
+    const entry = await getFragment();
+    const image = entry.image ? await normalizeDecal("fragment-visuals", entry.image) : undefined;
     const attachment = image && entry.image
       ? new AttachmentBuilder(image, { name: `fragment-${entry.image}` })
       : undefined;

@@ -1,5 +1,5 @@
 import { AttachmentBuilder, EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { choose, OracleAspect, prophecies } from "../lore.js";
+import { getProphecy, OracleAspect } from "../lore.js";
 import { normalizeDecal } from "../assets.js";
 import { aspectDesign } from "../design.js";
 
@@ -28,10 +28,7 @@ export const oracleCommand = {
       )),
   async execute(interaction: import("discord.js").ChatInputCommandInteraction) {
     const requestedAspect = interaction.options.getString("aspect") as OracleAspect | "random" | null;
-    const availableProphecies = requestedAspect && requestedAspect !== "random"
-      ? prophecies.filter((prophecy) => prophecy.aspect === requestedAspect)
-      : prophecies;
-    const prophecy = choose(availableProphecies);
+    const prophecy = await getProphecy(requestedAspect && requestedAspect !== "random" ? requestedAspect : undefined);
     const design = aspectDesign[prophecy.aspect];
     const image = prophecy.image ? await normalizeDecal("", prophecy.image) : undefined;
     const attachment = image && prophecy.image

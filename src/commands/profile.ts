@@ -47,8 +47,8 @@ export const profileCommand = {
       .filter((role) => role.name !== "@everyone")
       .map((role) => role.name)
       .slice(0, 5);
-    const card = getProfileCard([...member.roles.cache.keys()]);
-      const image = card.image ? await normalizeDecal("profile-pictures", card.image) : undefined;
+    const card = await getProfileCard([...member.roles.cache.keys()]);
+    const image = card.image ? await normalizeDecal("profile-pictures", card.image) : undefined;
     const attachment = image && card.image
       ? new AttachmentBuilder(image, { name: `profile-${card.image}` })
       : undefined;
