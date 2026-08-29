@@ -57,7 +57,7 @@
 				<article><FileStack size={22} /><strong>{data.catalog?.fragments.length ?? 0}</strong><span>Fragmente</span></article>
 				<article><BookOpen size={22} /><strong>{data.catalog?.profiles.length ?? 0}</strong><span>Profilkarten</span></article>
 			</div>
-			<section class="next"><Eye size={18} /><div><strong>Redaktion bereit</strong><span>Neue Orakel, Fragmente und Profilkarten können mit Live-Embed-Vorschau angelegt werden.</span><nav><a href="/oracles">Orakel</a><a href="/fragments">Fragmente</a><a href="/profiles">Profilkarten</a></nav></div></section>
+			<section class="next"><Eye size={18} /><div><strong>Redaktion bereit</strong><span>Neue Orakel, Fragmente und Profilkarten können mit Live-Embed-Vorschau angelegt werden.</span><nav><a href="/oracles">Orakel</a><a href="/fragments">Fragmente</a><a href="/profiles">Profilkarten</a><a href="/chronicle">Chronik</a></nav></div></section>
 		</section>
 	{/if}
 </main>

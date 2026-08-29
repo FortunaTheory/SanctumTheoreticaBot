@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import pg from 'pg';
 
@@ -7,11 +7,14 @@ if (!process.env.DATABASE_URL) {
 }
 
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
-const migrationPath = resolve(import.meta.dirname, '..', 'db', 'migrations', '001_content.sql');
+const migrationDirectory = resolve(import.meta.dirname, '..', 'db', 'migrations');
 
 await client.connect();
 try {
-	await client.query(await readFile(migrationPath, 'utf8'));
+	const migrationFiles = (await readdir(migrationDirectory)).filter((file) => file.endsWith('.sql')).sort();
+	for (const fileName of migrationFiles) {
+		await client.query(await readFile(resolve(migrationDirectory, fileName), 'utf8'));
+	}
 	console.log('Dashboard schema is ready.');
 } finally {
 	await client.end();

@@ -20,7 +20,7 @@ export async function query<Row extends QueryResultRow>(text: string, values: re
 	return result.rows;
 }
 
-type TransactionQuery = <Row extends QueryResultRow>(text: string, values?: readonly unknown[]) => Promise<Row[]>;
+export type TransactionQuery = <Row extends QueryResultRow>(text: string, values?: readonly unknown[]) => Promise<Row[]>;
 
 export async function transaction<Result>(operation: (execute: TransactionQuery) => Promise<Result>): Promise<Result> {
 	const client = await getPool().connect();

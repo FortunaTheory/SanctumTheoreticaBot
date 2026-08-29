@@ -17,6 +17,7 @@ export type FragmentEntry = {
 };
 
 export type ProfileCard = {
+  userId?: string;
   roleId?: string;
   priority?: number;
   author: string;
@@ -94,11 +95,13 @@ function parseFragments(value: unknown): readonly FragmentEntry[] {
 
 function parseProfileCard(value: unknown, path: string): ProfileCard {
   if (!isRecord(value)) throw new Error(`${path} ist ungültig.`);
+  if (value.userId !== undefined && typeof value.userId !== "string") throw new Error(`${path}.userId muss ein Text sein.`);
   if (value.roleId !== undefined && typeof value.roleId !== "string") throw new Error(`${path}.roleId muss ein Text sein.`);
   if (value.priority !== undefined && (typeof value.priority !== "number" || !Number.isFinite(value.priority))) {
     throw new Error(`${path}.priority muss eine Zahl sein.`);
   }
   return {
+    userId: value.userId,
     roleId: value.roleId,
     priority: value.priority,
     author: requiredText(value.author, `${path}.author`),
@@ -158,24 +161,22 @@ export async function getFragment(): Promise<FragmentEntry> {
   return parseFragments([rows[0]])[0]!;
 }
 
-export async function getProfileCard(roleIds: readonly string[]): Promise<ProfileCard> {
-  if (!usesContentDatabase()) return getJsonProfileCard(roleIds);
+export async function getProfileCard(userId: string): Promise<ProfileCard> {
+  if (!usesContentDatabase()) return getJsonProfileCard([]);
 
   const cards = await queryContent<Record<string, unknown>>(
-    `SELECT role_id AS "roleId", priority, author, title, status, note, footer, color, image_key AS image
+    `SELECT user_id AS "userId", priority, author, title, status, note, footer, color, image_key AS image
      FROM profile_cards
-     WHERE role_id = ANY($1::text[])
-     ORDER BY priority DESC`,
-    [roleIds]
+     WHERE user_id = $1
+     LIMIT 1`,
+    [userId]
   );
   if (cards.length > 0) {
-    const highestPriority = cards[0]?.priority;
-    const variants = cards.filter((card) => card.priority === highestPriority);
-    return parseProfileCard(choose(variants), "profile_cards");
+    return parseProfileCard(cards[0], "profile_cards");
   }
 
   const defaults = await queryContent<Record<string, unknown>>(
-    `SELECT role_id AS "roleId", priority, author, title, status, note, footer, color, image_key AS image
+    `SELECT user_id AS "userId", priority, author, title, status, note, footer, color, image_key AS image
      FROM profile_cards
      WHERE is_default = true
      LIMIT 1`
