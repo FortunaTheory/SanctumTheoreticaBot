@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
 
 export const pingCommand = {
   data: new SlashCommandBuilder()
@@ -7,7 +7,7 @@ export const pingCommand = {
   async execute(interaction: import("discord.js").ChatInputCommandInteraction) {
     await interaction.reply({
       content: `Pong. Latency: ${interaction.client.ws.ping}ms`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
   }
 };

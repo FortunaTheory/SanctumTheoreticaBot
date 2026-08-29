@@ -1,4 +1,4 @@
-import { Client, Collection, Events, GatewayIntentBits, REST, Routes } from "discord.js";
+import { Client, Collection, Events, GatewayIntentBits, MessageFlags, REST, Routes } from "discord.js";
 import { config } from "./config.js";
 import { pingCommand } from "./commands/ping.js";
 import { oracleCommand } from "./commands/oracle.js";
@@ -47,7 +47,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (!isTeamMember(interaction)) {
     await interaction.reply({
       content: "Diese Stimme bleibt vorerst hinter dem Schleier. Nur das Mod- und Admin-Team kann sie rufen.",
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
     return;
   }
@@ -56,7 +56,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await execute(interaction);
   } catch (error) {
     console.error(`Command ${interaction.commandName} failed:`, error);
-    const reply = { content: "Beim Öffnen dieses Eintrags ist etwas schiefgegangen.", ephemeral: true };
+    const reply: Parameters<typeof interaction.followUp>[0] = {
+      content: "Beim Öffnen dieses Eintrags ist etwas schiefgegangen.",
+      flags: MessageFlags.Ephemeral as number
+    };
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp(reply);
     } else {
