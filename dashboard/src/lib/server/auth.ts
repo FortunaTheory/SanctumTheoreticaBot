@@ -8,7 +8,7 @@ const administratorBit = 8n;
 
 export type DashboardUser = { id: string; username: string };
 type DiscordIdentity = { id: string; global_name: string | null; username: string };
-type DiscordMember = { roles: string[]; permissions: string };
+type DiscordMember = { roles: string[]; permissions?: string };
 
 function requiredEnv(name: string): string {
 	const value = process.env[name];
@@ -99,7 +99,8 @@ export async function authenticateDiscordCode(code: string): Promise<DashboardUs
 	const member = await memberResponse.json() as DiscordMember;
 	const allowedRoles = (process.env.DISCORD_MOD_ROLE_IDS ?? '').split(',').map((role) => role.trim()).filter(Boolean);
 	const allowedUserIds = (process.env.DASHBOARD_ALLOWED_USER_IDS ?? '').split(',').map((userId) => userId.trim()).filter(Boolean);
-	const isAdministrator = (BigInt(member.permissions) & administratorBit) === administratorBit;
+	const isAdministrator = member.permissions !== undefined
+		&& (BigInt(member.permissions) & administratorBit) === administratorBit;
 	const isExplicitlyAllowed = allowedUserIds.includes(identity.id);
 	if (!isExplicitlyAllowed && !isAdministrator && !member.roles.some((role) => allowedRoles.includes(role))) {
 		throw new Error('This Discord account is not authorized for the dashboard.');
