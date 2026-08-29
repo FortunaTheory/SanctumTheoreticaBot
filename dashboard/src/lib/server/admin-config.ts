@@ -2,18 +2,21 @@ import { z } from 'zod';
 import { query, transaction } from './database';
 
 const discordId = z.string().regex(/^\d{17,20}$/, 'Discord-IDs müssen 17 bis 20 Ziffern enthalten.');
-const configSchema = z.object({
+const editableConfigSchema = z.object({
 	guildId: discordId.nullable(),
 	modRoleIds: z.array(discordId),
 	dashboardAllowedUserIds: z.array(discordId),
 	whisperChannelId: discordId.nullable(),
 	whisperMinHours: z.coerce.number().positive(),
-	whisperMaxHours: z.coerce.number().positive(),
-	updatedAt: z.string(),
-	updatedBy: z.string()
+	whisperMaxHours: z.coerce.number().positive()
 }).refine((value) => value.whisperMinHours <= value.whisperMaxHours, {
 	message: 'Das Mindestintervall darf nicht über dem Höchstintervall liegen.',
 	path: ['whisperMinHours']
+});
+
+const configSchema = editableConfigSchema.extend({
+	updatedAt: z.string(),
+	updatedBy: z.string()
 });
 
 export type BotConfig = z.infer<typeof configSchema>;
@@ -66,7 +69,7 @@ export async function ensureBotConfig(): Promise<BotConfig> {
 
 export function parseBotConfig(input: unknown): Omit<BotConfig, 'updatedAt' | 'updatedBy'> {
 	const values = input as Record<string, string>;
-	return configSchema.omit({ updatedAt: true, updatedBy: true }).parse({
+	return editableConfigSchema.parse({
 		guildId: nullableId(values.guildId ?? ''),
 		modRoleIds: splitIds(values.modRoleIds ?? ''),
 		dashboardAllowedUserIds: splitIds(values.dashboardAllowedUserIds ?? ''),
