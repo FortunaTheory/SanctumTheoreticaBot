@@ -53,7 +53,7 @@ function requiredText(value: unknown, path: string): string {
 }
 
 function optionalImage(value: unknown, path: string): string | undefined {
-  if (value === undefined) return undefined;
+  if (value === undefined || value === null) return undefined;
   if (typeof value !== "string" || !value.trim()) {
     throw new Error(`${path} muss ein Dateiname sein.`);
   }
