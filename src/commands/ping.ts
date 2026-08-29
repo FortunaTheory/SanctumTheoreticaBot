@@ -6,7 +6,7 @@ export const pingCommand = {
     .setDescription("Prüft ob die Kuratorin in den Hallen ist."),
   async execute(interaction: import("discord.js").ChatInputCommandInteraction) {
     await interaction.reply({
-      content: `Pong. Latency: ${interaction.client.ws.ping}ms`,
+      content: `Und schon wieder liegen ${interaction.client.ws.ping}Phoenixfeder wieder verstreut auf dem Boden!`,
       flags: MessageFlags.Ephemeral
     });
   }

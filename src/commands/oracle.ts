@@ -19,12 +19,12 @@ export const oracleCommand = {
     .setDescription("Bitte die Kuratorin um eine verschleierte Prophezeiung.")
     .addStringOption((option) => option
       .setName("aspect")
-      .setDescription("Durch welchen Aspekt soll das Orakel sprechen?")
+      .setDescription("Durch welches Aspekt soll das Orakel sprechen?")
       .addChoices(
-        { name: "Zufällig", value: "random" },
-        { name: "Archiv", value: "archive" },
-        { name: "Lucid", value: "lucid" },
-        { name: "Enigma", value: "enigma" }
+        { name: "der ewige Nexus", value: "random" },
+        { name: "Hallen des Archivs", value: "archive" },
+        { name: "der luzide Verfall", value: "lucid" },
+        { name: "Omegaprotokoll: ENIGMA", value: "enigma" }
       )),
   async execute(interaction: import("discord.js").ChatInputCommandInteraction) {
     const requestedAspect = interaction.options.getString("aspect") as OracleAspect | "random" | null;

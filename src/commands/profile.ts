@@ -8,10 +8,10 @@ import { registerProfileLookup } from "../easter-eggs.js";
 export const profileCommand = {
   data: new SlashCommandBuilder()
     .setName("profile")
-    .setDescription("Öffne die Archivakte eines Teammitglieds.")
+    .setDescription("Öffne die Archivakte eines Mitgliedes.")
     .addUserOption((option) => option
       .setName("member")
-      .setDescription("Das Teammitglied, dessen Akte geöffnet werden soll.")
+      .setDescription("Das Mitglied, dessen Akte geöffnet werden soll.")
       .setRequired(true)),
   async execute(interaction: import("discord.js").ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });

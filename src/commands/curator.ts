@@ -4,7 +4,7 @@ import { isTeamMember } from "../permissions.js";
 export const curatorCommand = {
   data: new SlashCommandBuilder()
     .setName("curator")
-    .setDescription("Listen for the voice behind the veil."),
+    .setDescription("...und da irrte sie abermals in der Dunkelheit und bettelte..."),
   async execute(interaction: import("discord.js").ChatInputCommandInteraction) {
     const isAuthorized = isTeamMember(interaction);
 
@@ -14,7 +14,7 @@ export const curatorCommand = {
           "",
           "**Das Archiv ist wach.**",
           "Der alte Ritus bleibt unter Kontrolle.",
-          "**Zugriff:** nur das Team und die Administration",
+          "**Zugriff:** nur die Wächter und Hüter des Archivs",
           "**Stille:** noch unter Beobachtung"
         ].join("\n")
       : [

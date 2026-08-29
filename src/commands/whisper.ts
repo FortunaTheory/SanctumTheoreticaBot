@@ -37,7 +37,7 @@ export function createWhisperCommand(scheduler: WhisperScheduler) {
 
       if (!isAuthorized) {
         await interaction.reply({
-          content: "Nur das Archiv-Team darf die Stimme der Kuratorin anrufen.",
+          content: "Nur die Wächter dürfen die Stimme der Kuratorin rufen.",
           flags: MessageFlags.Ephemeral
         });
         return;
@@ -82,7 +82,7 @@ export function createWhisperCommand(scheduler: WhisperScheduler) {
         await interaction.editReply({
           content: forced
             ? "Der nächste Whisper wurde aus dem Schatten gerufen."
-            : "Whisper sind derzeit nicht aktiviert. Das Archiv bleibt still."
+            : "Whisper sind derzeit nicht aktiviert. Der Wahnsinn ruht vorerst."
         });
         return;
       }
