@@ -9,9 +9,9 @@
 
 <svelte:head><title>Chronik | Sanctum Theoretica</title></svelte:head>
 
-<main>
-	<header><a href="/" aria-label="Zur Übersicht" title="Zur Übersicht"><ArrowLeft size={18} /></a><div class="brand"><span>ST</span><strong>Kuratorium / Chronik</strong></div></header>
-	<section class="shell"><div class="heading"><div><p class="eyebrow">Archivprotokoll</p><h1>Chronik</h1></div><span>{data.revisions.length} Revisionen</span></div>
+<main class="sanctum-page antialiased">
+	<header class="sanctum-header"><a href="/" aria-label="Zur Übersicht" title="Zur Übersicht"><ArrowLeft size={18} /></a><div class="brand"><span>ST</span><strong>Kuratorium / Chronik</strong></div></header>
+	<section class="shell sanctum-shell"><div class="heading"><div><p class="eyebrow">Archivprotokoll</p><h1>Chronik</h1></div><span>{data.revisions.length} Revisionen</span></div>
 		{#if form?.error}<p class="error">{form.error}</p>{/if}{#if form?.success}<p class="success">Der frühere Zustand wurde wiederhergestellt.</p>{/if}
 		<div class="timeline">{#if data.revisions.length === 0}<p>Die Chronik ist noch leer.</p>{:else}{#each data.revisions as revision}<article><div class="mark"></div><div><p><strong>{labels[revision.resourceType]}</strong> {actions[revision.action]} von <b>{revision.authorName}</b></p><small>{new Date(revision.createdAt).toLocaleString('de-DE')}</small></div>{#if revision.action !== 'create' && revision.previousValue && revision.resourceType !== 'whisper' && revision.resourceType !== 'whisper_target'}<form method="POST" action="?/restore"><input type="hidden" name="revisionId" value={revision.id} /><button type="submit" title="Früheren Zustand wiederherstellen"><RotateCcw size={15} /> Wiederherstellen</button></form>{/if}</article>{/each}{/if}</div>
 	</section>

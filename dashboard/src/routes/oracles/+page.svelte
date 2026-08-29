@@ -12,9 +12,9 @@
 
 <svelte:head><title>Orakel | Sanctum Theoretica</title></svelte:head>
 
-<main>
-	<header><a href="/" aria-label="Zur Übersicht" title="Zur Übersicht"><ArrowLeft size={18} /></a><div class="brand"><span>ST</span><strong>Kuratorium / Orakel</strong></div></header>
-	<section class="shell">
+<main class="sanctum-page antialiased">
+	<header class="sanctum-header"><a href="/" aria-label="Zur Übersicht" title="Zur Übersicht"><ArrowLeft size={18} /></a><div class="brand"><span>ST</span><strong>Kuratorium / Orakel</strong></div></header>
+	<section class="shell sanctum-shell">
 		<div class="heading"><div><p class="eyebrow">Katalogpflege</p><h1>Orakel</h1></div><span>{data.oracles.length} Einträge</span></div>
 		<div class="grid">
 			<form method="POST" action="?/create" enctype="multipart/form-data" class="editor">

@@ -9,9 +9,9 @@
 
 <svelte:head><title>Whisper | Sanctum Theoretica</title></svelte:head>
 
-<main>
-	<header><a href="/" aria-label="Zur Übersicht" title="Zur Übersicht"><ArrowLeft size={18} /></a><div class="brand"><span>ST</span><strong>Kuratorium / Whisper</strong></div></header>
-	<section class="shell">
+<main class="sanctum-page antialiased">
+	<header class="sanctum-header"><a href="/" aria-label="Zur Übersicht" title="Zur Übersicht"><ArrowLeft size={18} /></a><div class="brand"><span>ST</span><strong>Kuratorium / Whisper</strong></div></header>
+	<section class="shell sanctum-shell">
 		<div class="heading"><div><p class="eyebrow">Ritualverwaltung</p><h1>Whisper</h1></div><span>{data.entries.length} Stimmen · {data.targets.length} Zielpersonen</span></div>
 		{#if form?.error}<p class="error">{form.error}</p>{/if}{#if form?.success}<p class="success">Die Chronik wurde aktualisiert.</p>{/if}
 		<div class="grid">

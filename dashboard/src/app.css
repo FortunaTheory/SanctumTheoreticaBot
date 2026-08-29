@@ -1,22 +1,77 @@
+@import "tailwindcss";
+
 /* Change these tokens to restyle the dashboard without touching its components. */
 :root {
-	--ink: #8548bb;
-	--ink-muted: #805885;
-	--ink-soft: #76517a;
-	--surface: #000000;
-	--surface-raised: #000000;
-	--surface-deep: #35213f;
-	--line: rgba(159, 99, 216, 0.527);
-	--danger: #9a306e;
+	--ink: #f0e8f5;
+	--ink-muted: #b5a1bc;
+	--ink-soft: #d090ff;
+	--surface: #100b16;
+	--surface-raised: #1a1023;
+	--surface-deep: #6b2b93;
+	--surface-sunken: #0c0711;
+	--line: rgb(208 144 255 / 25%);
+	--danger: #ff6b9e;
+	--success: #8fe0ad;
 	--font-display: Georgia, 'Times New Roman', serif;
 	--font-ui: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-* { box-sizing: border-box; }
+@theme {
+	--color-sanctum-ink: var(--ink);
+	--color-sanctum-muted: var(--ink-muted);
+	--color-sanctum-accent: var(--ink-soft);
+	--color-sanctum-surface: var(--surface);
+	--color-sanctum-raised: var(--surface-raised);
+	--color-sanctum-deep: var(--surface-deep);
+	--color-sanctum-danger: var(--danger);
+	--font-sanctum-display: var(--font-display);
+	--font-sanctum-ui: var(--font-ui);
+}
 
-body {
-	margin: 0;
-	color: var(--ink);
-	background: var(--surface);
-	font-family: var(--font-display);
+@layer base {
+	* { box-sizing: border-box; }
+	body {
+		margin: 0;
+		min-width: 320px;
+		color: var(--ink);
+		background: var(--surface);
+		font-family: var(--font-display);
+	}
+	button, input, select, textarea { font: inherit; }
+	button, a, input, select, textarea, summary { outline-offset: 3px; }
+	button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+		outline: 2px solid var(--ink-soft);
+	}
+}
+
+@layer components {
+	.sanctum-page {
+		min-height: 100vh;
+		background: linear-gradient(125deg, rgb(136 61 184 / 18%), transparent 44%), repeating-linear-gradient(0deg, rgb(208 144 255 / 5%) 0 1px, transparent 1px 6px);
+	}
+	.sanctum-header {
+		display: flex;
+		align-items: center;
+		height: 4.25rem;
+		padding-inline: clamp(1rem, 5vw, 5rem);
+		border-bottom: 1px solid var(--line);
+	}
+	.sanctum-shell { width: min(1120px, 90vw); margin: 4rem auto 7rem; }
+	.sanctum-panel { border: 1px solid var(--line); background: var(--surface-raised); }
+	.sanctum-control {
+		width: 100%; border: 1px solid var(--line); border-radius: .25rem; padding: .7rem .75rem;
+		color: var(--ink); background: var(--surface-sunken); transition: border-color .16s ease, background-color .16s ease;
+	}
+	.sanctum-control:hover { border-color: rgb(208 144 255 / 55%); }
+	.sanctum-button {
+		display: inline-flex; align-items: center; justify-content: center; gap: .55rem; width: max-content;
+		border: 1px solid transparent; border-radius: .25rem; padding: .72rem .9rem; color: #fff;
+		background: var(--surface-deep); cursor: pointer; font: .75rem var(--font-ui); letter-spacing: .04em; text-transform: uppercase;
+		transition: background-color .16s ease, transform .16s ease;
+	}
+	.sanctum-button:hover { background: #8338b1; transform: translateY(-1px); }
+	.sanctum-button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+	.sanctum-notice { margin: 0; padding: .75rem; color: var(--ink-muted); border-left: 3px solid var(--ink-soft); background: rgb(208 144 255 / 7%); line-height: 1.5; }
+	.sanctum-error { color: #ffc0d2; border-left-color: var(--danger); background: rgb(255 107 158 / 8%); }
+	.sanctum-success { color: var(--success); border-left-color: var(--success); background: rgb(143 224 173 / 8%); }
 }

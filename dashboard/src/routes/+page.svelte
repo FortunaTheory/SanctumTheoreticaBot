@@ -17,8 +17,8 @@
 	<meta name="description" content="Interne Redaktion für das Sanctum-Theoretica-Archiv." />
 </svelte:head>
 
-<main>
-	<header>
+<main class="sanctum-page antialiased">
+	<header class="sanctum-header">
 		<div class="brand"><span>ST</span><strong>Sanctum Theoretica</strong></div>
 		{#if data.user}
 			<div class="identity">
@@ -46,7 +46,7 @@
 			<p>Setze <code>DATABASE_URL</code> und führe anschließend <code>npm run migrate</code> im Dashboard-Service aus.</p>
 		</section>
 	{:else}
-		<section class="workspace">
+		<section class="workspace sanctum-shell">
 			<div class="intro">
 				<p class="eyebrow">Redaktionsübersicht</p>
 				<h1>Das Kuratorium</h1>
@@ -57,7 +57,7 @@
 				<article><FileStack size={22} /><strong>{data.catalog?.fragments.length ?? 0}</strong><span>Fragmente</span></article>
 				<article><BookOpen size={22} /><strong>{data.catalog?.profiles.length ?? 0}</strong><span>Profilkarten</span></article>
 			</div>
-			<section class="next"><Eye size={18} /><div><strong>Redaktion bereit</strong><span>Orakel, Fragmente, Profilkarten und Whisper können direkt gepflegt werden.</span><nav><a href="/oracles">Orakel</a><a href="/fragments">Fragmente</a><a href="/profiles">Profilkarten</a><a href="/whispers">Whisper</a><a href="/chronicle">Chronik</a></nav></div></section>
+			<section class="next"><Eye size={18} /><div><strong>Redaktion bereit</strong><span>Orakel, Fragmente, Profilkarten und Whisper können direkt gepflegt werden.</span><nav><a href="/oracles">Orakel</a><a href="/fragments">Fragmente</a><a href="/profiles">Profilkarten</a><a href="/whispers">Whisper</a><a href="/chronicle">Chronik</a>{#if data.isOwner}<a href="/admin">Administration</a>{/if}</nav></div></section>
 		</section>
 	{/if}
 </main>

@@ -43,4 +43,8 @@ npm run seed:whispers
 
 Der zweite Befehl importiert die bisherigen neun JSON-Whisper und zwei Zielpersonen genau einmal und verweigert weitere Läufe, um Duplikate zu verhindern.
 
+## Owner-Administration
+
+Der Bereich `/admin` im Dashboard ist ausschließlich für `OWNER_DISCORD_ID` vorgesehen. Dort werden nicht geheime Laufzeitwerte gepflegt: Community-Guild, Teamrollen, weitere Dashboard-Nutzer, Whisper-Fallback-Kanal und Zeitfenster. Nach dem Deploy der Administration einmal `npm run migrate` im Dashboard-Service ausführen und dort `OWNER_DISCORD_ID` als Railway-Variable setzen. Rollen- und Whisper-Änderungen werden vom Bot spätestens nach 30 Sekunden übernommen. Eine geänderte Guild-ID wird gespeichert, benötigt für die Discord-Command-Registrierung aber einen Bot-Redeploy.
+
 Lade den Bot mit den Scopes `bot` und `applications.commands` ein. Für `/profile` wird zunächst nur ein Teammitglied aus dem internen Archiv akzeptiert.

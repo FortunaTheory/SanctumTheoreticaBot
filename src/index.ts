@@ -10,6 +10,7 @@ import { createWhisperAdminCommand } from "./commands/whisper-admin.js";
 import { WhisperScheduler } from "./whisper-scheduler.js";
 import { startActivityRotation } from "./activity.js";
 import { isTeamMember } from "./permissions.js";
+import { refreshRuntimeConfig } from "./runtime-config.js";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const whisperScheduler = new WhisperScheduler(client);
@@ -49,6 +50,18 @@ client.once(Events.ClientReady, (readyClient) => {
   console.log(`Registered ${commands.length} commands ${config.guildId ? "for the development guild" : "globally"}.`);
   startActivityRotation(client);
   void whisperScheduler.load().catch((error) => console.error("Whisper-State konnte nicht geladen werden:", error));
+  const refresh = async () => {
+    try {
+      if (await refreshRuntimeConfig()) {
+        await whisperScheduler.applyRuntimeConfig();
+        console.log("Runtime-Konfiguration aus der Datenbank aktualisiert.");
+      }
+    } catch (error) {
+      console.error("Runtime-Konfiguration konnte nicht aktualisiert werden:", error);
+    }
+  };
+  void refresh();
+  setInterval(() => void refresh(), 30_000);
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {

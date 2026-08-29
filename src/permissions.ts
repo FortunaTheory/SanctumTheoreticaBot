@@ -1,5 +1,5 @@
 import { APIInteractionGuildMember, ChatInputCommandInteraction, GuildMember, PermissionFlagsBits } from "discord.js";
-import { config } from "./config.js";
+import { getRuntimeConfig } from "./runtime-config.js";
 
 export function isTeamMember(interaction: ChatInputCommandInteraction): boolean {
   if (!interaction.inGuild() || !interaction.member) return false;
@@ -7,8 +7,8 @@ export function isTeamMember(interaction: ChatInputCommandInteraction): boolean 
 
   const roles = interaction.member.roles;
   return Array.isArray(roles)
-    ? roles.some((roleId) => config.modRoleIds.includes(roleId))
-    : roles.cache.some((role) => config.modRoleIds.includes(role.id));
+    ? roles.some((roleId) => getRuntimeConfig().modRoleIds.includes(roleId))
+    : roles.cache.some((role) => getRuntimeConfig().modRoleIds.includes(role.id));
 }
 
 export function isAuthorizedMember(member: GuildMember | APIInteractionGuildMember): boolean {
@@ -23,10 +23,10 @@ export function isAuthorizedMember(member: GuildMember | APIInteractionGuildMemb
   if (!roles) return false;
 
   if ("cache" in roles) {
-    return roles.cache.some((role) => config.modRoleIds.includes(role.id));
+    return roles.cache.some((role) => getRuntimeConfig().modRoleIds.includes(role.id));
   }
 
   return Array.isArray(roles)
-    ? roles.some((roleId) => config.modRoleIds.includes(roleId))
+    ? roles.some((roleId) => getRuntimeConfig().modRoleIds.includes(roleId))
     : false;
 }

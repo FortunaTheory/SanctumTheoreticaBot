@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { Cookies } from '@sveltejs/kit';
+import { loadBotConfig } from './admin-config';
 
 const sessionCookie = 'sanctum_session';
 const oauthStateCookie = 'sanctum_oauth_state';
@@ -67,6 +68,10 @@ export function clearSession(cookies: Cookies): void {
 	cookies.delete(sessionCookie, cookieOptions);
 }
 
+export function isDashboardOwner(user: DashboardUser): boolean {
+	return user.id === process.env.OWNER_DISCORD_ID;
+}
+
 export function getDiscordAuthorizeUrl(state: string): string {
 	const params = new URLSearchParams({
 		client_id: requiredEnv('DISCORD_CLIENT_ID'),
@@ -97,11 +102,17 @@ export async function authenticateDiscordCode(code: string): Promise<DashboardUs
 	});
 	if (!memberResponse.ok) throw new Error('Discord guild membership lookup failed.');
 	const member = await memberResponse.json() as DiscordMember;
-	const allowedRoles = (process.env.DISCORD_MOD_ROLE_IDS ?? '').split(',').map((role) => role.trim()).filter(Boolean);
-	const allowedUserIds = (process.env.DASHBOARD_ALLOWED_USER_IDS ?? '').split(',').map((userId) => userId.trim()).filter(Boolean);
+	let runtimeConfig;
+	try {
+		runtimeConfig = await loadBotConfig();
+	} catch (error) {
+		console.warn('Dashboard authorization falls back to environment configuration:', error);
+	}
+	const allowedRoles = runtimeConfig?.modRoleIds ?? (process.env.DISCORD_MOD_ROLE_IDS ?? '').split(',').map((role) => role.trim()).filter(Boolean);
+	const allowedUserIds = runtimeConfig?.dashboardAllowedUserIds ?? (process.env.DASHBOARD_ALLOWED_USER_IDS ?? '').split(',').map((userId) => userId.trim()).filter(Boolean);
 	const isAdministrator = member.permissions !== undefined
 		&& (BigInt(member.permissions) & administratorBit) === administratorBit;
-	const isExplicitlyAllowed = allowedUserIds.includes(identity.id);
+	const isExplicitlyAllowed = allowedUserIds.includes(identity.id) || identity.id === process.env.OWNER_DISCORD_ID;
 	if (!isExplicitlyAllowed && !isAdministrator && !member.roles.some((role) => allowedRoles.includes(role))) {
 		throw new Error('This Discord account is not authorized for the dashboard.');
 	}

@@ -5,6 +5,7 @@ import { normalizeDecal } from "./assets.js";
 import { config } from "./config.js";
 import { queryContent, usesContentDatabase } from "./content-database.js";
 import { choose } from "./lore.js";
+import { getRuntimeConfig } from "./runtime-config.js";
 import { loadWhisperState, saveWhisperState, WhisperState } from "./whisper-state.js";
 
 type WhisperEntry = {
@@ -69,8 +70,9 @@ export class WhisperScheduler {
     await this.runExclusive(async () => {
       await this.ensureData();
       this.state = await loadWhisperState();
-      if (this.state.enabled && !this.state.channelId && config.whisperChannelId) {
-        this.state = { ...this.state, channelId: config.whisperChannelId };
+      const runtime = getRuntimeConfig();
+      if (this.state.enabled && !this.state.channelId && runtime.whisperChannelId) {
+        this.state = { ...this.state, channelId: runtime.whisperChannelId };
         await saveWhisperState(this.state);
       }
       if (this.state.enabled && this.state.channelId) this.schedule();
@@ -105,6 +107,17 @@ export class WhisperScheduler {
 
   public getStatus(): WhisperState {
     return { ...this.state };
+  }
+
+  public async applyRuntimeConfig(): Promise<void> {
+    await this.runExclusive(async () => {
+      const runtime = getRuntimeConfig();
+      if (this.state.enabled && !this.state.channelId && runtime.whisperChannelId) {
+        this.state = { ...this.state, channelId: runtime.whisperChannelId };
+        await saveWhisperState(this.state);
+      }
+      if (this.state.enabled) this.schedule();
+    });
   }
 
   public async force(): Promise<boolean> {
@@ -227,8 +240,9 @@ export class WhisperScheduler {
   }
 
   private randomDelay(): number {
-    const hours = config.whisperMinHours
-      + Math.random() * (config.whisperMaxHours - config.whisperMinHours);
+    const runtime = getRuntimeConfig();
+    const hours = runtime.whisperMinHours
+      + Math.random() * (runtime.whisperMaxHours - runtime.whisperMinHours);
     return hours * 60 * 60 * 1000;
   }
 
