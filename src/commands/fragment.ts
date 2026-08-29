@@ -38,7 +38,7 @@ export const fragmentCommand = {
     }
 
     const entry = choose(fragmentEntries);
-    const image = entry.image ? await normalizeDecal("", entry.image) : undefined;
+      const image = entry.image ? await normalizeDecal("fragment-visuals", entry.image) : undefined;
     const attachment = image && entry.image
       ? new AttachmentBuilder(image, { name: `fragment-${entry.image}` })
       : undefined;

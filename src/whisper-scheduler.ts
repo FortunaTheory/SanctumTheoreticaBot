@@ -10,49 +10,88 @@ type WhisperEntry = string | {
   image?: string;
 };
 
-const whisperMessages: readonly WhisperEntry[] = JSON.parse(
-  await readFile(resolve(process.cwd(), "data", "whispers.json"), "utf8")
-);
-const whisperTargets: readonly string[] = JSON.parse(
-  await readFile(resolve(process.cwd(), "data", "whisper-targets.json"), "utf8")
-);
+type WhisperData = {
+  messages: readonly WhisperEntry[];
+  targets: readonly string[];
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseWhisperData(messages: unknown, targets: unknown): WhisperData {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    throw new Error("data/whispers.json muss mindestens einen Whisper enthalten.");
+  }
+  if (!Array.isArray(targets)) {
+    throw new Error("data/whisper-targets.json muss eine Liste von Nutzer-IDs enthalten.");
+  }
+
+  const parsedMessages = messages.map((entry, index): WhisperEntry => {
+    if (typeof entry === "string" && entry.trim()) return entry;
+    if (!isRecord(entry)) throw new Error(`data/whispers.json[${index}] ist ungültig.`);
+    const text = entry.text;
+    const image = entry.image;
+    if (text !== undefined && (typeof text !== "string" || !text.trim())) {
+      throw new Error(`data/whispers.json[${index}].text ist ungültig.`);
+    }
+    if (image !== undefined && (typeof image !== "string" || !image.trim())) {
+      throw new Error(`data/whispers.json[${index}].image ist ungültig.`);
+    }
+    if (!text && !image) throw new Error(`data/whispers.json[${index}] enthält weder Text noch Bild.`);
+    return { text, image };
+  });
+  const parsedTargets = targets.filter((target): target is string => typeof target === "string" && /^\d{17,20}$/.test(target));
+  if (parsedTargets.length === 0) {
+    throw new Error("data/whisper-targets.json enthält keine gültige Discord-Nutzer-ID.");
+  }
+  return { messages: parsedMessages, targets: parsedTargets };
+}
 
 export class WhisperScheduler {
   private state: WhisperState = { enabled: false };
   private timer?: NodeJS.Timeout;
+  private data?: WhisperData;
+  private operationQueue: Promise<void> = Promise.resolve();
 
   public constructor(private readonly client: Client) {}
 
   public async load(): Promise<void> {
-    this.state = await loadWhisperState();
-    if (this.state.enabled && !this.state.channelId && config.whisperChannelId) {
-      this.state = { ...this.state, channelId: config.whisperChannelId };
-      await saveWhisperState(this.state);
-    }
-    if (this.state.enabled && this.state.channelId) {
-      this.schedule();
-    }
+    await this.runExclusive(async () => {
+      await this.ensureData();
+      this.state = await loadWhisperState();
+      if (this.state.enabled && !this.state.channelId && config.whisperChannelId) {
+        this.state = { ...this.state, channelId: config.whisperChannelId };
+        await saveWhisperState(this.state);
+      }
+      if (this.state.enabled && this.state.channelId) this.schedule();
+    });
   }
 
   public async enable(guildId: string, channelId: string): Promise<WhisperState> {
-    this.clearTimer();
-    this.state = {
-      ...this.state,
-      enabled: true,
-      guildId,
-      channelId,
-      nextAt: new Date(Date.now() + this.randomDelay()).toISOString()
-    };
-    await saveWhisperState(this.state);
-    this.schedule();
-    return this.state;
+    return this.runExclusive(async () => {
+      await this.ensureData();
+      this.clearTimer();
+      this.state = {
+        ...this.state,
+        enabled: true,
+        guildId,
+        channelId,
+        nextAt: new Date(Date.now() + this.randomDelay()).toISOString()
+      };
+      await saveWhisperState(this.state);
+      this.schedule();
+      return { ...this.state };
+    });
   }
 
   public async disable(): Promise<WhisperState> {
-    this.clearTimer();
-    this.state = { ...this.state, enabled: false, nextAt: undefined };
-    await saveWhisperState(this.state);
-    return this.state;
+    return this.runExclusive(async () => {
+      this.clearTimer();
+      this.state = { ...this.state, enabled: false, nextAt: undefined };
+      await saveWhisperState(this.state);
+      return { ...this.state };
+    });
   }
 
   public getStatus(): WhisperState {
@@ -60,10 +99,13 @@ export class WhisperScheduler {
   }
 
   public async force(): Promise<boolean> {
-    if (!this.state.enabled || !this.state.channelId) return false;
-    this.clearTimer();
-    await this.sendWhisper();
-    return true;
+    return this.runExclusive(async () => {
+      await this.ensureData();
+      if (!this.state.enabled || !this.state.channelId) return false;
+      this.clearTimer();
+      await this.sendWhisper();
+      return true;
+    });
   }
 
   private schedule(): void {
@@ -72,7 +114,11 @@ export class WhisperScheduler {
 
     const nextAt = this.state.nextAt ? Date.parse(this.state.nextAt) : Date.now() + this.randomDelay();
     const delay = Math.max(0, nextAt - Date.now());
-    this.timer = setTimeout(() => void this.sendWhisper(), delay);
+    this.timer = setTimeout(() => {
+      void this.runExclusive(() => this.sendWhisper()).catch((error) => {
+        console.error("Whisper konnte nicht geplant gesendet werden:", error);
+      });
+    }, delay);
   }
 
   private async sendWhisper(): Promise<void> {
@@ -84,7 +130,8 @@ export class WhisperScheduler {
         throw new Error("Der konfigurierte Whisper-Kanal ist kein Textkanal.");
       }
 
-      const targetId = this.chooseTarget();
+      const data = await this.ensureData();
+      const targetId = this.chooseTarget(data.targets);
       const { entry, index } = this.chooseEntry();
       const text = typeof entry === "string" ? entry : entry.text;
       const imageName = typeof entry === "string" ? undefined : entry.image;
@@ -124,16 +171,34 @@ export class WhisperScheduler {
     this.schedule();
   }
 
-  private chooseTarget(): string {
-    const validTargets = whisperTargets.filter((targetId) => /^\d{17,20}$/.test(targetId));
-    if (validTargets.length === 0) {
-      throw new Error("Keine gültige Zielperson in data/whisper-targets.json konfiguriert.");
+  private async ensureData(): Promise<WhisperData> {
+    if (this.data) return this.data;
+    try {
+      const [messages, targets] = await Promise.all([
+        readFile(resolve(process.cwd(), "data", "whispers.json"), "utf8"),
+        readFile(resolve(process.cwd(), "data", "whisper-targets.json"), "utf8")
+      ]);
+      this.data = parseWhisperData(JSON.parse(messages), JSON.parse(targets));
+      return this.data;
+    } catch (error) {
+      throw new Error("Whisper-Daten konnten nicht geladen werden.", { cause: error });
     }
+  }
+
+  private runExclusive<T>(operation: () => Promise<T>): Promise<T> {
+    const run = this.operationQueue.then(operation, operation);
+    this.operationQueue = run.then(() => undefined, () => undefined);
+    return run;
+  }
+
+  private chooseTarget(validTargets: readonly string[]): string {
     const alternatives = validTargets.filter((targetId) => targetId !== this.state.lastTargetId);
     return choose(alternatives.length > 0 ? alternatives : validTargets);
   }
 
   private chooseEntry(): { entry: WhisperEntry; index: number } {
+    const whisperMessages = this.data?.messages;
+    if (!whisperMessages) throw new Error("Whisper-Daten wurden nicht geladen.");
     const usedIndexes = new Set(
       (this.state.usedEntryIndexes ?? []).filter((index) => index >= 0 && index < whisperMessages.length)
     );

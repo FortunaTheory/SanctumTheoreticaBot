@@ -5,6 +5,9 @@ const decalWidth = 1280;
 const decalHeight = 720;
 
 export async function normalizeDecal(folder: string, imageName: string): Promise<Buffer | undefined> {
+  if (folder && basename(folder) !== folder) {
+    throw new Error(`Ungültiger Decal-Ordnername: ${folder}`);
+  }
   if (basename(imageName) !== imageName) {
     throw new Error(`Ungültiger Decal-Dateiname: ${imageName}`);
   }

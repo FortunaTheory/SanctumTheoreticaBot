@@ -14,9 +14,25 @@ export const profileCommand = {
       .setDescription("Das Mitglied, dessen Akte geöffnet werden soll.")
       .setRequired(true)),
   async execute(interaction: import("discord.js").ChatInputCommandInteraction) {
+    if (!interaction.inGuild() || !interaction.guild) {
+      await interaction.reply({
+        content: "Archivakten können nur innerhalb des Serverarchivs geöffnet werden.",
+        flags: MessageFlags.Ephemeral
+      });
+      return;
+    }
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const user = interaction.options.getUser("member", true);
-    const member = await interaction.guild!.members.fetch(user.id);
+    let member;
+    try {
+      member = await interaction.guild.members.fetch(user.id);
+    } catch (error) {
+      console.error(`Profil für ${user.id} konnte nicht geladen werden:`, error);
+      await interaction.editReply({
+        content: "Diese Akte konnte nicht aus dem Serverarchiv geladen werden. Das Mitglied ist möglicherweise nicht mehr anwesend."
+      });
+      return;
+    }
 
     if (!isAuthorizedMember(member)) {
       await interaction.editReply({
@@ -32,7 +48,7 @@ export const profileCommand = {
       .map((role) => role.name)
       .slice(0, 5);
     const card = getProfileCard([...member.roles.cache.keys()]);
-    const image = card.image ? await normalizeDecal("", card.image) : undefined;
+      const image = card.image ? await normalizeDecal("profile-pictures", card.image) : undefined;
     const attachment = image && card.image
       ? new AttachmentBuilder(image, { name: `profile-${card.image}` })
       : undefined;

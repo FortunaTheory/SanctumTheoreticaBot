@@ -1,0 +1,59 @@
+<script lang="ts">
+	import { ArrowLeft, Eye, Plus, ScrollText } from '@lucide/svelte';
+	import type { ActionData, PageData } from './$types';
+
+	let { data, form }: { data: PageData; form: ActionData } = $props();
+	let aspect = $state('archive');
+	let text = $state('');
+
+	const labels = { archive: 'Hallen des Archivs', lucid: 'Luzider Verfall', enigma: 'Omegaprotokoll: Enigma' } as const;
+	const colors = { archive: '#705477', lucid: '#365f67', enigma: '#8f4d69' } as const;
+</script>
+
+<svelte:head><title>Orakel | Sanctum Theoretica</title></svelte:head>
+
+<main>
+	<header><a href="/" aria-label="Zur Übersicht" title="Zur Übersicht"><ArrowLeft size={18} /></a><div class="brand"><span>ST</span><strong>Kuratorium / Orakel</strong></div></header>
+	<section class="shell">
+		<div class="heading"><div><p class="eyebrow">Katalogpflege</p><h1>Orakel</h1></div><span>{data.oracles.length} Einträge</span></div>
+		<div class="grid">
+			<form method="POST" action="?/create" class="editor">
+				<div class="section-label"><Plus size={16} /> Neues Orakel</div>
+				<label>Aspekt<select name="aspect" bind:value={aspect}><option value="archive">Hallen des Archivs</option><option value="lucid">Luzider Verfall</option><option value="enigma">Omegaprotokoll: Enigma</option></select></label>
+				<label>Prophezeiung<textarea name="text" bind:value={text} maxlength="500" placeholder="Die nächste Antwort liegt ..."></textarea><span class="count">{text.length} / 500</span></label>
+				{#if form?.error}<p class="error">{form.error}</p>{/if}
+				{#if form?.success}<p class="success">Das Orakel wurde in die Chronik eingetragen.</p>{/if}
+				<button type="submit"><ScrollText size={16} /> Ins Archiv aufnehmen</button>
+			</form>
+			<aside class="preview"><div class="section-label"><Eye size={16} /> Discord-Vorschau</div><div class="embed" style={`--accent: ${colors[aspect as keyof typeof colors]}`}><div class="embed-title">&#9672; ORAKELRESONANZ · {labels[aspect as keyof typeof labels]}</div><div class="embed-body"><b>ARCHIVSIGNAL · {labels[aspect as keyof typeof labels].toUpperCase()}</b><blockquote>{text || 'Die Vorschau wartet auf eine Prophezeiung.'}</blockquote></div><div class="embed-footer">Die Kuratorin · gerade eben</div></div></aside>
+		</div>
+		<section class="entries"><div class="section-label"><ScrollText size={16} /> Vorhandene Orakel</div>{#if data.oracles.length === 0}<p class="empty">Noch keine Datenbankeinträge. Führe nach der Migration einmal <code>npm run seed</code> aus.</p>{:else}<div class="entry-list">{#each data.oracles as oracle}<article><span class="aspect {oracle.aspect}">{labels[oracle.aspect]}</span><p>{oracle.text}</p></article>{/each}</div>{/if}</section>
+	</section>
+</main>
+
+<style>
+	main { min-height: 100vh; background: linear-gradient(118deg, rgba(79, 50, 83, .13), transparent 42%), repeating-linear-gradient(0deg, rgba(58, 37, 61, .045) 0 1px, transparent 1px 5px); }
+	header { height: 66px; display: flex; gap: 1rem; align-items: center; padding: 0 5vw; border-bottom: 1px solid var(--line); }
+	header a { display: grid; place-items: center; color: var(--ink); }
+	.brand { display: flex; gap: .6rem; align-items: center; font: .78rem var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+	.brand span { display: grid; width: 30px; aspect-ratio: 1; place-items: center; color: #fff; background: var(--surface-deep); font-family: var(--font-display); letter-spacing: 0; }
+	.shell { width: min(1180px, 90vw); margin: 4rem auto 7rem; }
+	.heading { display: flex; align-items: end; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 1.5rem; }
+	.eyebrow, .section-label, .heading > span { margin: 0; color: var(--ink-soft); font: .72rem var(--font-ui); letter-spacing: .1em; text-transform: uppercase; }
+	h1 { margin: .5rem 0 0; font-size: clamp(3rem, 6vw, 5rem); font-weight: 400; line-height: .9; }
+	.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .8fr); gap: 3rem; margin-top: 3rem; }
+	.editor, .preview, .entries { background: var(--surface-raised); border: 1px solid var(--line); }
+	.editor { display: grid; gap: 1.25rem; padding: 1.5rem; }
+	.section-label { display: flex; gap: .5rem; align-items: center; color: var(--ink); }
+	label { display: grid; gap: .5rem; font-size: .95rem; }
+	select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 0; padding: .75rem; color: var(--ink); background: #f8f5f7; font: inherit; }
+	textarea { min-height: 180px; resize: vertical; line-height: 1.5; }
+	.count { justify-self: end; color: var(--ink-muted); font: .7rem var(--font-ui); }
+	button { display: inline-flex; justify-content: center; gap: .55rem; align-items: center; width: max-content; border: 0; padding: .8rem 1rem; color: white; background: var(--surface-deep); cursor: pointer; font: .75rem var(--font-ui); letter-spacing: .04em; text-transform: uppercase; }
+	.error { margin: 0; color: var(--danger); } .success { margin: 0; color: #326049; }
+	.preview { padding: 1.5rem; }
+	.embed { margin-top: 1.25rem; border-left: 4px solid var(--accent); padding: 1rem; color: #dbdee1; background: #2b2d31; font-family: Arial, sans-serif; }
+	.embed-title { font-weight: 700; font-size: .95rem; }.embed-body { margin-top: .8rem; font-size: .86rem; line-height: 1.5; }.embed-body b { font-size: .71rem; }.embed-body blockquote { margin: .8rem 0; padding-left: .7rem; border-left: 2px solid #4e5058; font-style: italic; }.embed-footer { color: #949ba4; font-size: .72rem; }
+	.entries { margin-top: 3rem; padding: 1.5rem; }.entry-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; margin-top: 1.2rem; background: var(--line); border: 1px solid var(--line); }.entry-list article { padding: 1rem; background: #f8f5f7; }.entry-list p { margin: .75rem 0 0; line-height: 1.5; }.aspect { color: var(--ink-soft); font: .68rem var(--font-ui); text-transform: uppercase; }.aspect.lucid { color: #366a71; }.aspect.enigma { color: #8f4d69; }.empty { color: var(--ink-muted); } code { font-family: var(--font-ui); }
+	@media (max-width: 760px) { .grid { grid-template-columns: 1fr; gap: 1rem; } .shell { margin-top: 2.5rem; } }
+</style>

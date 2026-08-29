@@ -1,0 +1,22 @@
+/* Change these tokens to restyle the dashboard without touching its components. */
+:root {
+	--ink: #231b2a;
+	--ink-muted: #514852;
+	--ink-soft: #76517a;
+	--surface: #e6e1e6;
+	--surface-raised: #eee9ed;
+	--surface-deep: #35213f;
+	--line: rgba(52, 34, 58, 0.23);
+	--danger: #9a3049;
+	--font-display: Georgia, 'Times New Roman', serif;
+	--font-ui: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+	margin: 0;
+	color: var(--ink);
+	background: var(--surface);
+	font-family: var(--font-display);
+}

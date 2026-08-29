@@ -6,13 +6,22 @@ import { oracleCommand } from "./commands/oracle.js";
 import { fragmentCommand } from "./commands/fragment.js";
 import { profileCommand } from "./commands/profile.js";
 import { createWhisperCommand } from "./commands/whisper.js";
+import { createWhisperAdminCommand } from "./commands/whisper-admin.js";
 import { WhisperScheduler } from "./whisper-scheduler.js";
 import { startActivityRotation } from "./activity.js";
 import { isTeamMember } from "./permissions.js";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const whisperScheduler = new WhisperScheduler(client);
-const commands = [pingCommand, curatorCommand, oracleCommand, fragmentCommand, profileCommand, createWhisperCommand(whisperScheduler)];
+const commands = [
+  pingCommand,
+  curatorCommand,
+  oracleCommand,
+  fragmentCommand,
+  profileCommand,
+  createWhisperCommand(),
+  createWhisperAdminCommand(whisperScheduler)
+];
 const commandMap = new Collection<string, (interaction: import("discord.js").ChatInputCommandInteraction) => Promise<void>>(
   commands.map((command) => [command.data.name, command.execute])
 );
@@ -21,6 +30,10 @@ const rest = new REST({ version: "10" }).setToken(config.token);
 const commandRoute = config.guildId
   ? Routes.applicationGuildCommands(config.clientId, config.guildId)
   : Routes.applicationCommands(config.clientId);
+
+if (!config.guildId) {
+  console.warn("DISCORD_GUILD_ID is not set; commands will be registered globally.");
+}
 
 try {
   await rest.put(commandRoute, { body: commands.map((command) => command.data.toJSON()) });
@@ -44,9 +57,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
   const execute = commandMap.get(interaction.commandName);
   if (!execute) return;
 
-  if (!isTeamMember(interaction)) {
+  if (interaction.commandName === "ping" && !isTeamMember(interaction)) {
     await interaction.reply({
-      content: "Diese Stimme bleibt vorerst hinter dem Schleier. Nur das Mod- und Admin-Team kann sie rufen.",
+      content: "Der Puls des Archivs bleibt dem Mod- und Admin-Team vorbehalten.",
       flags: MessageFlags.Ephemeral
     });
     return;
