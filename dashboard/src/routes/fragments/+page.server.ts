@@ -3,6 +3,7 @@ import { ZodError } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
 import { getDashboardUser } from '$lib/server/auth';
 import { createFragment, loadCatalog, parseCreateFragment } from '$lib/server/content';
+import { uploadImage } from '$lib/server/storage';
 
 function requireUser(cookies: Parameters<typeof getDashboardUser>[0]) {
 	const user = getDashboardUser(cookies);
@@ -21,7 +22,9 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const values = { title: String(form.get('title') ?? ''), text: String(form.get('text') ?? '') };
 		try {
-			await createFragment(parseCreateFragment(values), user);
+			const image = form.get('image');
+			const imageKey = image instanceof File && image.size > 0 ? await uploadImage(image, 'fragment') : undefined;
+			await createFragment(parseCreateFragment(values), user, imageKey);
 			return { success: true };
 		} catch (error) {
 			if (error instanceof ZodError) return fail(400, { error: error.issues[0]?.message ?? 'Ungültige Eingabe.', values });
