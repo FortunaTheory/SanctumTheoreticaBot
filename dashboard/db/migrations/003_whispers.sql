@@ -25,5 +25,5 @@ BEGIN
   END IF;
   ALTER TABLE content_revisions
     ADD CONSTRAINT content_revisions_resource_type_check
-    CHECK (resource_type IN ('oracle', 'fragment', 'profile', 'whisper', 'whisper_target'));
+    CHECK (resource_type IN ('oracle', 'fragment', 'profile', 'whisper', 'whisper_target', 'admin_config'));
 END $$;
