@@ -98,8 +98,10 @@ export async function authenticateDiscordCode(code: string): Promise<DashboardUs
 	if (!memberResponse.ok) throw new Error('Discord guild membership lookup failed.');
 	const member = await memberResponse.json() as DiscordMember;
 	const allowedRoles = (process.env.DISCORD_MOD_ROLE_IDS ?? '').split(',').map((role) => role.trim()).filter(Boolean);
+	const allowedUserIds = (process.env.DASHBOARD_ALLOWED_USER_IDS ?? '').split(',').map((userId) => userId.trim()).filter(Boolean);
 	const isAdministrator = (BigInt(member.permissions) & administratorBit) === administratorBit;
-	if (!isAdministrator && !member.roles.some((role) => allowedRoles.includes(role))) {
+	const isExplicitlyAllowed = allowedUserIds.includes(identity.id);
+	if (!isExplicitlyAllowed && !isAdministrator && !member.roles.some((role) => allowedRoles.includes(role))) {
 		throw new Error('This Discord account is not authorized for the dashboard.');
 	}
 	return { id: identity.id, username: identity.global_name || identity.username };
