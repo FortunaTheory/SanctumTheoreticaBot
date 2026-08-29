@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { queryContent, usesContentDatabase } from "./content-database.js";
 
 export type OracleAspect = "archive" | "lucid" | "enigma";
 
@@ -127,7 +128,63 @@ export const prophecies = parseProphecies(readDataFile("oracle.json"));
 export const fragmentEntries = parseFragments(readDataFile("fragments.json"));
 const profileData = parseProfiles(readDataFile("profiles.json"));
 
-export function getProfileCard(roleIds: readonly string[]): ProfileCard {
+export async function getProphecy(requestedAspect?: OracleAspect): Promise<Prophecy> {
+  if (!usesContentDatabase()) {
+    const available = requestedAspect
+      ? prophecies.filter((prophecy) => prophecy.aspect === requestedAspect)
+      : prophecies;
+    return choose(available);
+  }
+
+  const rows = await queryContent<Record<string, unknown>>(
+    `SELECT aspect, text, image_key AS image
+     FROM oracle_entries
+     WHERE ($1::text IS NULL OR aspect = $1)
+     ORDER BY random()
+     LIMIT 1`,
+    [requestedAspect ?? null]
+  );
+  if (!rows[0]) throw new Error("Die Datenbank enthält kein passendes Orakel.");
+  return parseProphecies([rows[0]])[0]!;
+}
+
+export async function getFragment(): Promise<FragmentEntry> {
+  if (!usesContentDatabase()) return choose(fragmentEntries);
+
+  const rows = await queryContent<Record<string, unknown>>(
+    "SELECT title, text, image_key AS image FROM fragment_entries ORDER BY random() LIMIT 1"
+  );
+  if (!rows[0]) throw new Error("Die Datenbank enthält kein Fragment.");
+  return parseFragments([rows[0]])[0]!;
+}
+
+export async function getProfileCard(roleIds: readonly string[]): Promise<ProfileCard> {
+  if (!usesContentDatabase()) return getJsonProfileCard(roleIds);
+
+  const cards = await queryContent<Record<string, unknown>>(
+    `SELECT role_id AS "roleId", priority, author, title, status, note, footer, color, image_key AS image
+     FROM profile_cards
+     WHERE role_id = ANY($1::text[])
+     ORDER BY priority DESC`,
+    [roleIds]
+  );
+  if (cards.length > 0) {
+    const highestPriority = cards[0]?.priority;
+    const variants = cards.filter((card) => card.priority === highestPriority);
+    return parseProfileCard(choose(variants), "profile_cards");
+  }
+
+  const defaults = await queryContent<Record<string, unknown>>(
+    `SELECT role_id AS "roleId", priority, author, title, status, note, footer, color, image_key AS image
+     FROM profile_cards
+     WHERE is_default = true
+     LIMIT 1`
+  );
+  if (!defaults[0]) throw new Error("Die Datenbank enthält keine Standard-Profilkarte.");
+  return parseProfileCard(defaults[0], "profile_cards.default");
+}
+
+function getJsonProfileCard(roleIds: readonly string[]): ProfileCard {
   const matchingCards = profileData.roles
     .filter((card) => card.roleId && roleIds.includes(card.roleId))
     .sort((first, second) => (second.priority ?? 0) - (first.priority ?? 0));
