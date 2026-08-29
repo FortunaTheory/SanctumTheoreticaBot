@@ -6,8 +6,8 @@ if (!process.env.DATABASE_URL) {
 	throw new Error('DATABASE_URL is required to seed content.');
 }
 
-const projectRoot = resolve(import.meta.dirname, '..', '..');
-const readJson = async (fileName) => JSON.parse(await readFile(resolve(projectRoot, 'data', fileName), 'utf8'));
+const seedDirectory = resolve(import.meta.dirname, '..', 'db', 'seed');
+const readJson = async (fileName) => JSON.parse(await readFile(resolve(seedDirectory, fileName), 'utf8'));
 const [oracles, fragments, profileData] = await Promise.all([
 	readJson('oracle.json'),
 	readJson('fragments.json'),
