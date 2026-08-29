@@ -147,7 +147,7 @@ export class WhisperScheduler {
     if (!this.state.enabled || !this.state.channelId) return;
 
     try {
-      const channel = await this.client.channels.fetch(this.state.channelId);
+      const channel = await this.fetchChannel(this.state.channelId);
       if (!(channel instanceof TextChannel)) {
         throw new Error("Der konfigurierte Whisper-Kanal ist kein Textkanal.");
       }
@@ -237,6 +237,20 @@ export class WhisperScheduler {
     }
 
     return { entry: choose(availableEntries) };
+  }
+
+  private async fetchChannel(channelId: string) {
+    let timeout: NodeJS.Timeout | undefined;
+    try {
+      return await Promise.race([
+        this.client.channels.fetch(channelId),
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(() => reject(new Error("Whisper-Kanal konnte nicht innerhalb von 10 Sekunden geladen werden.")), 10_000);
+        })
+      ]);
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
   }
 
   private randomDelay(): number {

@@ -9,6 +9,7 @@ import { createWhisperCommand } from "./commands/whisper.js";
 import { createWhisperAdminCommand } from "./commands/whisper-admin.js";
 import { WhisperScheduler } from "./whisper-scheduler.js";
 import { startActivityRotation } from "./activity.js";
+import { closeContentDatabase } from "./content-database.js";
 import { isTeamMember } from "./permissions.js";
 import { refreshRuntimeConfig } from "./runtime-config.js";
 
@@ -93,5 +94,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 });
+
+for (const signal of ["SIGINT", "SIGTERM"] as const) {
+  process.once(signal, () => {
+    void closeContentDatabase()
+      .catch((error) => console.error("Datenbankverbindung konnte nicht sauber geschlossen werden:", error))
+      .finally(() => {
+        client.destroy();
+        process.exit(0);
+      });
+  });
+}
 
 await client.login(config.token);

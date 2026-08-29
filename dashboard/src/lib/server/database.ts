@@ -11,7 +11,12 @@ export class DatabaseUnavailableError extends Error {
 function getPool(): Pool {
 	const connectionString = process.env.DATABASE_URL;
 	if (!connectionString) throw new DatabaseUnavailableError();
-	pool ??= new Pool({ connectionString });
+	pool ??= new Pool({
+		connectionString,
+		max: 10,
+		idleTimeoutMillis: 30_000,
+		connectionTimeoutMillis: 5_000
+	});
 	return pool;
 }
 

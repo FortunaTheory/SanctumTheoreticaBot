@@ -22,13 +22,15 @@ export async function loadWhisperCatalog(): Promise<{ entries: WhisperEntry[]; t
 }
 
 export async function createWhisper(input: z.infer<typeof whisperInputSchema>, imageKey: string | undefined, author: Author): Promise<void> {
-	const entries = await query<WhisperEntry>(
-		`INSERT INTO whisper_entries (text, image_key, updated_by) VALUES ($1, $2, $3)
-		 RETURNING id, text, image_key AS "imageKey", updated_at::text AS "updatedAt"`,
-		[input.text || null, imageKey ?? null, author.id]
-	);
-	const entry = entrySchema.parse(entries[0]);
-	await audit('whisper', entry.id, 'create', author, null, entry);
+	await transaction(async (execute) => {
+		const entries = await execute<WhisperEntry>(
+			`INSERT INTO whisper_entries (text, image_key, updated_by) VALUES ($1, $2, $3)
+			 RETURNING id, text, image_key AS "imageKey", updated_at::text AS "updatedAt"`,
+			[input.text || null, imageKey ?? null, author.id]
+		);
+		const entry = entrySchema.parse(entries[0]);
+		await auditWith(execute, 'whisper', entry.id, 'create', author, null, entry);
+	});
 }
 
 export async function updateWhisper(id: string, input: z.infer<typeof whisperInputSchema>, imageKey: string | undefined, author: Author): Promise<void> {
@@ -51,13 +53,15 @@ export async function deleteWhisper(id: string, author: Author): Promise<void> {
 }
 
 export async function createWhisperTarget(input: z.infer<typeof targetInputSchema>, author: Author): Promise<void> {
-	const targets = await query<WhisperTarget>(
-		`INSERT INTO whisper_targets (user_id, updated_by) VALUES ($1, $2)
-		 RETURNING id, user_id AS "userId", updated_at::text AS "updatedAt"`,
-		[input.userId, author.id]
-	);
-	const target = targetSchema.parse(targets[0]);
-	await audit('whisper_target', target.id, 'create', author, null, target);
+	await transaction(async (execute) => {
+		const targets = await execute<WhisperTarget>(
+			`INSERT INTO whisper_targets (user_id, updated_by) VALUES ($1, $2)
+			 RETURNING id, user_id AS "userId", updated_at::text AS "updatedAt"`,
+			[input.userId, author.id]
+		);
+		const target = targetSchema.parse(targets[0]);
+		await auditWith(execute, 'whisper_target', target.id, 'create', author, null, target);
+	});
 }
 
 export async function updateWhisperTarget(id: string, input: z.infer<typeof targetInputSchema>, author: Author): Promise<void> {
@@ -78,10 +82,6 @@ export async function deleteWhisperTarget(id: string, author: Author): Promise<v
 	});
 }
 
-async function audit(resourceType: 'whisper' | 'whisper_target', resourceId: string, action: 'create', author: Author, previous: unknown, next: unknown): Promise<void> {
-	await query(`INSERT INTO content_revisions (resource_type, resource_id, action, author_id, author_name, previous_value, next_value) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb)`, [resourceType, resourceId, action, author.id, author.username, JSON.stringify(previous), JSON.stringify(next)]);
-}
-
-async function auditWith(execute: Parameters<typeof transaction>[0] extends (execute: infer Query) => Promise<unknown> ? Query : never, resourceType: 'whisper' | 'whisper_target', resourceId: string, action: 'update' | 'delete', author: Author, previous: unknown, next: unknown): Promise<void> {
+async function auditWith(execute: Parameters<typeof transaction>[0] extends (execute: infer Query) => Promise<unknown> ? Query : never, resourceType: 'whisper' | 'whisper_target', resourceId: string, action: 'create' | 'update' | 'delete', author: Author, previous: unknown, next: unknown): Promise<void> {
 	await execute(`INSERT INTO content_revisions (resource_type, resource_id, action, author_id, author_name, previous_value, next_value) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb)`, [resourceType, resourceId, action, author.id, author.username, JSON.stringify(previous), JSON.stringify(next)]);
 }
