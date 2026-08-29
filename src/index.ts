@@ -6,14 +6,13 @@ import { oracleCommand } from "./commands/oracle.js";
 import { fragmentCommand } from "./commands/fragment.js";
 import { profileCommand } from "./commands/profile.js";
 import { createWhisperCommand } from "./commands/whisper.js";
-import { createWhispersCommand } from "./commands/whispers.js";
 import { WhisperScheduler } from "./whisper-scheduler.js";
 import { startActivityRotation } from "./activity.js";
 import { isTeamMember } from "./permissions.js";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const whisperScheduler = new WhisperScheduler(client);
-const commands = [pingCommand, curatorCommand, oracleCommand, fragmentCommand, profileCommand, createWhisperCommand(whisperScheduler), createWhispersCommand(whisperScheduler)];
+const commands = [pingCommand, curatorCommand, oracleCommand, fragmentCommand, profileCommand, createWhisperCommand(whisperScheduler)];
 const commandMap = new Collection<string, (interaction: import("discord.js").ChatInputCommandInteraction) => Promise<void>>(
   commands.map((command) => [command.data.name, command.execute])
 );

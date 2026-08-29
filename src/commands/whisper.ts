@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder } from "discord.js";
 import { WhisperScheduler } from "../whisper-scheduler.js";
 import { isAuthorizedMember } from "../permissions.js";
 
@@ -11,7 +11,6 @@ export function createWhisperCommand(scheduler: WhisperScheduler) {
     data: new SlashCommandBuilder()
       .setName("whisper")
       .setDescription("Steuere die verborgenen Nachrichten der Kuratorin.")
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
       .addSubcommand((subcommand) => subcommand
         .setName("enable")
         .setDescription("Aktiviere die Whisper im aktuellen Kanal."))
@@ -20,9 +19,23 @@ export function createWhisperCommand(scheduler: WhisperScheduler) {
         .setDescription("Deaktiviere die Whisper dauerhaft."))
       .addSubcommand((subcommand) => subcommand
         .setName("status")
-        .setDescription("Zeige den aktuellen Whisper-Status.")),
+        .setDescription("Zeige den aktuellen Whisper-Status."))
+      .addSubcommand((subcommand) => subcommand
+        .setName("force")
+        .setDescription("Löse den nächsten Whisper sofort aus.")),
     async execute(interaction: ChatInputCommandInteraction) {
-      if (!interaction.inGuild() || !interaction.member || !isAuthorizedMember(interaction.member)) {
+      if (!interaction.inGuild() || !interaction.member) {
+        await interaction.reply({
+          content: "Diese Stimme bleibt jenseits des Rufs. Nur innerhalb eines Servers ist sie erreichbar.",
+          flags: MessageFlags.Ephemeral
+        });
+        return;
+      }
+
+      const isAuthorized = isAuthorizedMember(interaction.member);
+      const subcommand = interaction.options.getSubcommand(false);
+
+      if (!isAuthorized) {
         await interaction.reply({
           content: "Nur das Archiv-Team darf die Stimme der Kuratorin anrufen.",
           flags: MessageFlags.Ephemeral
@@ -30,7 +43,20 @@ export function createWhisperCommand(scheduler: WhisperScheduler) {
         return;
       }
 
-      const subcommand = interaction.options.getSubcommand();
+      if (!subcommand) {
+        const state = scheduler.getStatus();
+        await interaction.reply({
+          content: [
+            `Status: ${state.enabled ? "aktiv" : "inaktiv"}`,
+            `Kanal: ${state.channelId ? `<#${state.channelId}>` : "nicht festgelegt"}`,
+            `Nächste Nachricht: ${formatDate(state.nextAt)}`,
+            `Letzte Nachricht: ${formatDate(state.lastSentAt)}`
+          ].join("\n"),
+          flags: MessageFlags.Ephemeral
+        });
+        return;
+      }
+
       if (subcommand === "enable") {
         if (!interaction.channelId || !interaction.guildId) {
           await interaction.reply({ content: "Whisper können nur in einem Server-Textkanal aktiviert werden.", flags: MessageFlags.Ephemeral });
@@ -47,6 +73,17 @@ export function createWhisperCommand(scheduler: WhisperScheduler) {
       if (subcommand === "disable") {
         await scheduler.disable();
         await interaction.reply({ content: "Whisper deaktiviert. Das Archiv schweigt.", flags: MessageFlags.Ephemeral });
+        return;
+      }
+
+      if (subcommand === "force") {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        const forced = await scheduler.force();
+        await interaction.editReply({
+          content: forced
+            ? "Der nächste Whisper wurde aus dem Schatten gerufen."
+            : "Whisper sind derzeit nicht aktiviert. Das Archiv bleibt still."
+        });
         return;
       }
 
