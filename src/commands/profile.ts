@@ -3,6 +3,7 @@ import { normalizeDecal } from "../assets.js";
 import { profileDesign } from "../design.js";
 import { getProfileCard } from "../lore.js";
 import { isAuthorizedMember } from "../permissions.js";
+import { registerProfileLookup } from "../easter-eggs.js";
 
 export const profileCommand = {
   data: new SlashCommandBuilder()
@@ -23,6 +24,8 @@ export const profileCommand = {
       });
       return;
     }
+
+    registerProfileLookup(interaction.user.id, member.id);
 
     const roleNames = member.roles.cache
       .filter((role) => role.name !== "@everyone")

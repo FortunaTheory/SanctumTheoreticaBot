@@ -13,6 +13,11 @@ const activities: readonly ActivityEntry[] = JSON.parse(
   await readFile(resolve(process.cwd(), "data", "activities.json"), "utf8")
 );
 
+const symbolByMood: Record<ActivityMood, string> = {
+  analytical: "◈",
+  obsessed: "∴"
+};
+
 export function startActivityRotation(client: Client): NodeJS.Timeout {
   let lastActivityName: string | undefined;
 
@@ -24,10 +29,10 @@ export function startActivityRotation(client: Client): NodeJS.Timeout {
     lastActivityName = activity.name;
     client.user?.setPresence({
       activities: [{
-        name: activity.name,
+        name: `${symbolByMood[activity.mood]} ${activity.name}`,
         type: activity.type === "watching" ? ActivityType.Watching : ActivityType.Listening
       }],
-      status: "online"
+      status: "dnd"
     });
   };
 

@@ -1,5 +1,6 @@
 import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { WhisperScheduler } from "../whisper-scheduler.js";
+import { isAuthorizedMember } from "../permissions.js";
 
 export function createWhispersCommand(scheduler: WhisperScheduler) {
   return {
@@ -11,9 +12,9 @@ export function createWhispersCommand(scheduler: WhisperScheduler) {
         .setName("force")
         .setDescription("Sende den nächsten Whisper sofort.")),
     async execute(interaction: ChatInputCommandInteraction) {
-      if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+      if (!interaction.inGuild() || !interaction.member || !isAuthorizedMember(interaction.member)) {
         await interaction.reply({
-          content: "Nur die Administration darf Whisper erzwingen.",
+          content: "Nur das Archiv-Team darf die Kuratorin in die Stimme rufen.",
           flags: MessageFlags.Ephemeral
         });
         return;

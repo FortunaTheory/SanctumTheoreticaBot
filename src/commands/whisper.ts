@@ -1,5 +1,6 @@
 import { ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { WhisperScheduler } from "../whisper-scheduler.js";
+import { isAuthorizedMember } from "../permissions.js";
 
 function formatDate(value?: string): string {
   return value ? `<t:${Math.floor(Date.parse(value) / 1000)}:F>` : "Nicht geplant";
@@ -21,9 +22,9 @@ export function createWhisperCommand(scheduler: WhisperScheduler) {
         .setName("status")
         .setDescription("Zeige den aktuellen Whisper-Status.")),
     async execute(interaction: ChatInputCommandInteraction) {
-      if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+      if (!interaction.inGuild() || !interaction.member || !isAuthorizedMember(interaction.member)) {
         await interaction.reply({
-          content: "Nur die Administration darf den Whisper aktivieren oder verändern.",
+          content: "Nur das Archiv-Team darf die Stimme der Kuratorin anrufen.",
           flags: MessageFlags.Ephemeral
         });
         return;
@@ -32,7 +33,7 @@ export function createWhisperCommand(scheduler: WhisperScheduler) {
       const subcommand = interaction.options.getSubcommand();
       if (subcommand === "enable") {
         if (!interaction.channelId || !interaction.guildId) {
-          await interaction.reply({ content: "Whisper können nur in einer Server-Textkanal aktiviert werden.", flags: MessageFlags.Ephemeral });
+          await interaction.reply({ content: "Whisper können nur in einem Server-Textkanal aktiviert werden.", flags: MessageFlags.Ephemeral });
           return;
         }
         const state = await scheduler.enable(interaction.guildId, interaction.channelId);
