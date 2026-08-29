@@ -11,7 +11,7 @@ import { WhisperScheduler } from "./whisper-scheduler.js";
 import { startActivityRotation } from "./activity.js";
 import { closeContentDatabase } from "./content-database.js";
 import { isTeamMember } from "./permissions.js";
-import { refreshRuntimeConfig } from "./runtime-config.js";
+import { getRuntimeConfig, refreshRuntimeConfig } from "./runtime-config.js";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const whisperScheduler = new WhisperScheduler(client);
@@ -29,11 +29,17 @@ const commandMap = new Collection<string, (interaction: import("discord.js").Cha
 );
 
 const rest = new REST({ version: "10" }).setToken(config.token);
-const commandRoute = config.guildId
-  ? Routes.applicationGuildCommands(config.clientId, config.guildId)
+try {
+  await refreshRuntimeConfig();
+} catch (error) {
+  console.error("Runtime-Konfiguration konnte vor der Command-Registrierung nicht geladen werden:", error);
+}
+const registrationGuildId = getRuntimeConfig().guildId;
+const commandRoute = registrationGuildId
+  ? Routes.applicationGuildCommands(config.clientId, registrationGuildId)
   : Routes.applicationCommands(config.clientId);
 
-if (!config.guildId) {
+if (!registrationGuildId) {
   console.warn("DISCORD_GUILD_ID is not set; commands will be registered globally.");
 }
 
@@ -48,7 +54,7 @@ try {
 
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);
-  console.log(`Registered ${commands.length} commands ${config.guildId ? "for the development guild" : "globally"}.`);
+  console.log(`Registered ${commands.length} commands ${registrationGuildId ? "for the configured guild" : "globally"}.`);
   startActivityRotation(client);
   void whisperScheduler.load().catch((error) => console.error("Whisper-State konnte nicht geladen werden:", error));
   const refresh = async () => {
