@@ -95,12 +95,12 @@ export async function loadCatalog(): Promise<Catalog> {
 	};
 }
 
-export async function createOracle(input: CreateOracleInput, author: { id: string; username: string }): Promise<OracleEntry> {
+export async function createOracle(input: CreateOracleInput, author: { id: string; username: string }, imageKey?: string): Promise<OracleEntry> {
 	const entries = await query<OracleEntry>(
-		`INSERT INTO oracle_entries (aspect, text, updated_by)
-		 VALUES ($1, $2, $3)
+		`INSERT INTO oracle_entries (aspect, text, image_key, updated_by)
+		 VALUES ($1, $2, $3, $4)
 		 RETURNING id, aspect, text, image_key AS "imageKey", updated_at::text AS "updatedAt"`,
-		[input.aspect, input.text, author.id]
+		[input.aspect, input.text, imageKey ?? null, author.id]
 	);
 	const entry = oracleSchema.parse(entries[0]);
 	await query(
@@ -111,12 +111,12 @@ export async function createOracle(input: CreateOracleInput, author: { id: strin
 	return entry;
 }
 
-export async function createFragment(input: CreateFragmentInput, author: { id: string; username: string }): Promise<FragmentEntry> {
+export async function createFragment(input: CreateFragmentInput, author: { id: string; username: string }, imageKey?: string): Promise<FragmentEntry> {
 	const entries = await query<FragmentEntry>(
-		`INSERT INTO fragment_entries (title, text, updated_by)
-		 VALUES ($1, $2, $3)
+		`INSERT INTO fragment_entries (title, text, image_key, updated_by)
+		 VALUES ($1, $2, $3, $4)
 		 RETURNING id, title, text, image_key AS "imageKey", updated_at::text AS "updatedAt"`,
-		[input.title, input.text, author.id]
+		[input.title, input.text, imageKey ?? null, author.id]
 	);
 	const entry = fragmentSchema.parse(entries[0]);
 	await query(
@@ -127,14 +127,14 @@ export async function createFragment(input: CreateFragmentInput, author: { id: s
 	return entry;
 }
 
-export async function createProfileCard(input: CreateProfileInput, author: { id: string; username: string }): Promise<ProfileCard> {
+export async function createProfileCard(input: CreateProfileInput, author: { id: string; username: string }, imageKey?: string): Promise<ProfileCard> {
 	return transaction(async (execute) => {
 		if (input.isDefault) await execute('UPDATE profile_cards SET is_default = false WHERE is_default = true');
 		const entries = await execute<ProfileCard>(
-			`INSERT INTO profile_cards (role_id, priority, author, title, status, note, footer, color, is_default, updated_by)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			`INSERT INTO profile_cards (role_id, priority, author, title, status, note, footer, color, image_key, is_default, updated_by)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 			 RETURNING id, role_id AS "roleId", priority, author, title, status, note, footer, color, image_key AS "imageKey", is_default AS "isDefault", updated_at::text AS "updatedAt"`,
-			[input.roleId || null, input.priority, input.author, input.title, input.status, input.note, input.footer, input.color, input.isDefault, author.id]
+			[input.roleId || null, input.priority, input.author, input.title, input.status, input.note, input.footer, input.color, imageKey ?? null, input.isDefault, author.id]
 		);
 		const entry = profileSchema.parse(entries[0]);
 		await execute(
