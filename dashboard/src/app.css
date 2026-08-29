@@ -1,13 +1,13 @@
 /* Change these tokens to restyle the dashboard without touching its components. */
 :root {
-	--ink: #231b2a;
-	--ink-muted: #514852;
+	--ink: #8548bb;
+	--ink-muted: #805885;
 	--ink-soft: #76517a;
-	--surface: #e6e1e6;
-	--surface-raised: #eee9ed;
+	--surface: #000000;
+	--surface-raised: #000000;
 	--surface-deep: #35213f;
-	--line: rgba(52, 34, 58, 0.23);
-	--danger: #9a3049;
+	--line: rgba(159, 99, 216, 0.527);
+	--danger: #9a306e;
 	--font-display: Georgia, 'Times New Roman', serif;
 	--font-ui: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
