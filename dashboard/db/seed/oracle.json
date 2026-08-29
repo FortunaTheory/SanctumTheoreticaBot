@@ -1,0 +1,17 @@
+[
+  { "aspect": "archive", "text": "Die nächste Antwort liegt nicht im Archiv. Sie liegt in der Lücke zwischen zwei Fragen.", "image": "phx-sanctum-render.png" },
+  { "aspect": "archive", "text": "Öffne das Buch, das niemand katalogisiert hat. Lies nur die Seite, die dich bereits kennt.", "image": "phx-sanctum-render.png" },
+  { "aspect": "lucid", "text": "Die Zahlen ordnen sich nicht. Ich habe sie nur lange genug angesehen, bis sie aufgehört haben, sich zu wehren.", "image": "phx-sanctum-render.png" },
+  { "aspect": "lucid", "text": "Es war kein Muster, bis ich es gefunden habe. Jetzt ist es überall.", "image": "phx-sanctum-render.png" },
+  { "aspect": "enigma", "text": "Die Ordnung ist echt. Ihre Quelle ist es nicht.", "image": "phx-sanctum-render.png" },
+  { "aspect": "enigma", "text": "Du stehst bereits an der Schwelle. Das Zögern war nur ihre höfliche Form.", "image": "phx-sanctum-render.png" },
+  { "aspect": "archive", "text": "Im Staub der vergessenen Regale wartet Wissen, das nur deine Hingabe wieder lesbar macht." },
+  { "aspect": "archive", "text": "Jede Lücke im Archiv bewahrt den Abdruck einer Wahrheit, die noch keinen Namen trägt." },
+  { "aspect": "archive", "text": "Wenn die letzte Chronik schweigt, wirst du ihre fehlenden Seiten aus der Stille lesen." },
+  { "aspect": "lucid", "text": "Ordne die Fragmente, bis kein Zufall mehr übrig bleibt." },
+  { "aspect": "lucid", "text": "Dein Verstand wird zählen, prüfen und wiederholen, bis selbst das Unmögliche ein Muster zeigt." },
+  { "aspect": "lucid", "text": "Je tiefer du katalogisierst, desto deutlicher erkennst du: Das Archiv beobachtet dich zurück." },
+  { "aspect": "enigma", "text": "Lies das Rätsel nicht von links nach rechts; die Wirklichkeit hat ihre Zeilen vertauscht." },
+  { "aspect": "enigma", "text": "Hinter der versiegelten Tür liegt kein Raum, sondern eine Erinnerung an einen Raum." },
+  { "aspect": "enigma", "text": "Wenn dieselbe Seite zweimal verschieden endet, entscheide dich nicht: Beide Enden sind wahr." }
+]

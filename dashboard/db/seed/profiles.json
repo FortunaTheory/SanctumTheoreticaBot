@@ -1,0 +1,42 @@
+{
+  "default": {
+    "author": "Interne Archivaufzeichnung",
+    "title": "Die beobachtete Akte",
+    "status": "Unter Beobachtung",
+    "note": "Die Akte war vor ihrer Person hier.",
+    "footer": "Zugriff: Mod- und Admin-Team · Interne Akte",
+    "color": "6f5a94"
+  },
+  "roles": [
+    {
+      "roleId": "547139475805831168",
+      "priority": 20,
+      "author": "Die oberste Archivaufsicht",
+      "title": "Die Hand über dem Archiv",
+      "status": "Unbeschränkter Zugriff",
+      "note": "Die Kuratorin nennt diese Akte nicht beim Namen.",
+      "footer": "Zugriff: Administration · Interne Akte",
+      "color": "8e6ac8"
+    },
+    {
+      "roleId": "1543008547389046864",
+      "priority": 20,
+      "author": "Die oberste Archivaufsicht",
+      "title": "Die Hand, die ordnet",
+      "status": "Unbeschränkter Zugriff",
+      "note": "Alle Wege führen zurück zu dieser Akte. Auch die, die es nicht sollten.",
+      "footer": "Zugriff: Administration · Interne Akte",
+      "color": "7355a8"
+    },
+    {
+      "roleId": "547140529847271436",
+      "priority": 20,
+      "author": "Wächterin der Schwelle",
+      "title": "Die bewachte Akte",
+      "status": "An der Schwelle verzeichnet",
+      "note": "Sie kennt den Weg hinein. Ob hinaus, bleibt ungeklärt.",
+      "footer": "Zugriff: Moderation · Interne Akte",
+      "color": "7355a8"
+    }
+  ]
+}
