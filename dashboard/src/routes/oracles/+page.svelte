@@ -17,10 +17,11 @@
 	<section class="shell">
 		<div class="heading"><div><p class="eyebrow">Katalogpflege</p><h1>Orakel</h1></div><span>{data.oracles.length} Einträge</span></div>
 		<div class="grid">
-			<form method="POST" action="?/create" class="editor">
+			<form method="POST" action="?/create" enctype="multipart/form-data" class="editor">
 				<div class="section-label"><Plus size={16} /> Neues Orakel</div>
 				<label>Aspekt<select name="aspect" bind:value={aspect}><option value="archive">Hallen des Archivs</option><option value="lucid">Luzider Verfall</option><option value="enigma">Omegaprotokoll: Enigma</option></select></label>
 				<label>Prophezeiung<textarea name="text" bind:value={text} maxlength="500" placeholder="Die nächste Antwort liegt ..."></textarea><span class="count">{text.length} / 500</span></label>
+				<label>Visual <input name="image" type="file" accept="image/jpeg,image/png,image/webp" /><span class="hint">Optional · JPG, PNG oder WebP · max. 5 MB</span></label>
 				{#if form?.error}<p class="error">{form.error}</p>{/if}
 				{#if form?.success}<p class="success">Das Orakel wurde in die Chronik eingetragen.</p>{/if}
 				<button type="submit"><ScrollText size={16} /> Ins Archiv aufnehmen</button>
@@ -48,7 +49,7 @@
 	label { display: grid; gap: .5rem; font-size: .95rem; }
 	select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 0; padding: .75rem; color: var(--ink); background: #f8f5f7; font: inherit; }
 	textarea { min-height: 180px; resize: vertical; line-height: 1.5; }
-	.count { justify-self: end; color: var(--ink-muted); font: .7rem var(--font-ui); }
+	.count, .hint { justify-self: end; color: var(--ink-muted); font: .7rem var(--font-ui); }
 	button { display: inline-flex; justify-content: center; gap: .55rem; align-items: center; width: max-content; border: 0; padding: .8rem 1rem; color: white; background: var(--surface-deep); cursor: pointer; font: .75rem var(--font-ui); letter-spacing: .04em; text-transform: uppercase; }
 	.error { margin: 0; color: var(--danger); } .success { margin: 0; color: #326049; }
 	.preview { padding: 1.5rem; }
