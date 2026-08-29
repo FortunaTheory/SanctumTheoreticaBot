@@ -9,6 +9,7 @@
 		"preview": "vite preview",
 		"migrate": "node scripts/migrate.mjs",
 		"seed": "node scripts/seed-json.mjs",
+		"seed:whispers": "node scripts/seed-whispers.mjs",
 		"start": "node build/index.js",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

@@ -10,7 +10,7 @@ const formats = {
 	webp: { extension: 'webp', contentType: 'image/webp' }
 } as const;
 
-export type AssetKind = 'oracle' | 'fragment' | 'profile';
+export type AssetKind = 'oracle' | 'fragment' | 'profile' | 'whisper';
 
 function requiredEnv(name: string): string {
 	const value = process.env[name];

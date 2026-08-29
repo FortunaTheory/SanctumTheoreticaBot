@@ -9,7 +9,7 @@ export async function normalizeDecal(folder: string, imageName: string): Promise
   if (folder && basename(folder) !== folder) {
     throw new Error(`Ungültiger Decal-Ordnername: ${folder}`);
   }
-  const isBucketAsset = /^(oracle|fragment|profile)\/[0-9a-f-]{36}\.(jpg|png|webp)$/i.test(imageName);
+  const isBucketAsset = /^(oracle|fragment|profile|whisper)\/[0-9a-f-]{36}\.(jpg|png|webp)$/i.test(imageName);
   if (!isBucketAsset && basename(imageName) !== imageName) {
     throw new Error(`Ungültiger Decal-Dateiname: ${imageName}`);
   }

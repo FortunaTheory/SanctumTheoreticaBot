@@ -9,6 +9,7 @@ export type WhisperState = {
   lastTargetId?: string;
   lastSentAt?: string;
   nextAt?: string;
+  usedEntryIds?: string[];
   usedEntryIndexes?: number[];
 };
 
@@ -34,6 +35,10 @@ function parseState(value: unknown): WhisperState {
     || state.usedEntryIndexes.some((index) => typeof index !== "number" || !Number.isInteger(index) || index < 0))) {
     throw new Error("Whisper-State-Feld usedEntryIndexes muss eine Liste nichtnegativer Ganzzahlen sein.");
   }
+  if (state.usedEntryIds !== undefined && (!Array.isArray(state.usedEntryIds)
+    || state.usedEntryIds.some((id) => typeof id !== "string" || !id.trim()))) {
+    throw new Error("Whisper-State-Feld usedEntryIds muss eine Liste von Eintrags-IDs sein.");
+  }
   return {
     enabled: state.enabled,
     guildId: optionalString(state.guildId, "guildId"),
@@ -41,6 +46,7 @@ function parseState(value: unknown): WhisperState {
     lastTargetId: optionalString(state.lastTargetId, "lastTargetId"),
     lastSentAt: optionalString(state.lastSentAt, "lastSentAt"),
     nextAt: optionalString(state.nextAt, "nextAt"),
+    usedEntryIds: state.usedEntryIds as string[] | undefined,
     usedEntryIndexes: state.usedEntryIndexes as number[] | undefined
   };
 }

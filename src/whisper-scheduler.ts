@@ -1,11 +1,14 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { AttachmentBuilder, Client, TextChannel } from "discord.js";
+import { normalizeDecal } from "./assets.js";
 import { config } from "./config.js";
+import { queryContent, usesContentDatabase } from "./content-database.js";
 import { choose } from "./lore.js";
 import { loadWhisperState, saveWhisperState, WhisperState } from "./whisper-state.js";
 
-type WhisperEntry = string | {
+type WhisperEntry = {
+  id: string;
   text?: string;
   image?: string;
 };
@@ -28,20 +31,26 @@ function parseWhisperData(messages: unknown, targets: unknown): WhisperData {
   }
 
   const parsedMessages = messages.map((entry, index): WhisperEntry => {
-    if (typeof entry === "string" && entry.trim()) return entry;
+    if (typeof entry === "string" && entry.trim()) return { id: `json-${index}`, text: entry };
     if (!isRecord(entry)) throw new Error(`data/whispers.json[${index}] ist ungültig.`);
     const text = entry.text;
     const image = entry.image;
-    if (text !== undefined && (typeof text !== "string" || !text.trim())) {
+    if (text !== undefined && text !== null && (typeof text !== "string" || !text.trim())) {
       throw new Error(`data/whispers.json[${index}].text ist ungültig.`);
     }
-    if (image !== undefined && (typeof image !== "string" || !image.trim())) {
+    if (image !== undefined && image !== null && (typeof image !== "string" || !image.trim())) {
       throw new Error(`data/whispers.json[${index}].image ist ungültig.`);
     }
     if (!text && !image) throw new Error(`data/whispers.json[${index}] enthält weder Text noch Bild.`);
-    return { text, image };
+    return {
+      id: typeof entry.id === "string" && entry.id ? entry.id : `json-${index}`,
+      text: typeof text === "string" ? text : undefined,
+      image: typeof image === "string" ? image : undefined
+    };
   });
-  const parsedTargets = targets.filter((target): target is string => typeof target === "string" && /^\d{17,20}$/.test(target));
+  const parsedTargets = targets
+    .map((target) => isRecord(target) ? target.userId : target)
+    .filter((target): target is string => typeof target === "string" && /^\d{17,20}$/.test(target));
   if (parsedTargets.length === 0) {
     throw new Error("data/whisper-targets.json enthält keine gültige Discord-Nutzer-ID.");
   }
@@ -132,14 +141,12 @@ export class WhisperScheduler {
 
       const data = await this.ensureData();
       const targetId = this.chooseTarget(data.targets);
-      const { entry, index } = this.chooseEntry();
-      const text = typeof entry === "string" ? entry : entry.text;
-      const imageName = typeof entry === "string" ? undefined : entry.image;
-      const imagePath = imageName
-        ? resolve(process.cwd(), "decals", "whispers-art", imageName)
-        : undefined;
-      const attachment = imagePath
-        ? new AttachmentBuilder(imagePath, { name: imageName })
+      const { entry } = this.chooseEntry();
+      const text = entry.text;
+      const imageName = entry.image;
+      const image = imageName ? await normalizeDecal("whispers-art", imageName) : undefined;
+      const attachment = image && imageName
+        ? new AttachmentBuilder(image, { name: `whisper-${imageName.replace("/", "-")}` })
         : undefined;
       if (!text && !attachment) {
         throw new Error("Whisper-Eintrag enthält weder Text noch Bild.");
@@ -156,7 +163,8 @@ export class WhisperScheduler {
         lastTargetId: targetId,
         lastSentAt: new Date().toISOString(),
         nextAt: new Date(Date.now() + this.randomDelay()).toISOString(),
-        usedEntryIndexes: [...(this.state.usedEntryIndexes ?? []), index]
+        usedEntryIds: [...(this.state.usedEntryIds ?? []), entry.id],
+        usedEntryIndexes: undefined
       };
       await saveWhisperState(this.state);
     } catch (error) {
@@ -172,8 +180,16 @@ export class WhisperScheduler {
   }
 
   private async ensureData(): Promise<WhisperData> {
-    if (this.data) return this.data;
     try {
+      if (usesContentDatabase()) {
+        const [messages, targets] = await Promise.all([
+          queryContent<Record<string, unknown>>('SELECT id, text, image_key AS image FROM whisper_entries ORDER BY created_at'),
+          queryContent<Record<string, unknown>>('SELECT user_id AS "userId" FROM whisper_targets ORDER BY created_at')
+        ]);
+        this.data = parseWhisperData(messages, targets);
+        return this.data;
+      }
+      if (this.data) return this.data;
       const [messages, targets] = await Promise.all([
         readFile(resolve(process.cwd(), "data", "whispers.json"), "utf8"),
         readFile(resolve(process.cwd(), "data", "whisper-targets.json"), "utf8")
@@ -196,24 +212,18 @@ export class WhisperScheduler {
     return choose(alternatives.length > 0 ? alternatives : validTargets);
   }
 
-  private chooseEntry(): { entry: WhisperEntry; index: number } {
+  private chooseEntry(): { entry: WhisperEntry } {
     const whisperMessages = this.data?.messages;
     if (!whisperMessages) throw new Error("Whisper-Daten wurden nicht geladen.");
-    const usedIndexes = new Set(
-      (this.state.usedEntryIndexes ?? []).filter((index) => index >= 0 && index < whisperMessages.length)
-    );
-    let availableIndexes = whisperMessages
-      .map((_, index) => index)
-      .filter((index) => !usedIndexes.has(index));
+    const usedIds = new Set(this.state.usedEntryIds ?? []);
+    let availableEntries = whisperMessages.filter((entry) => !usedIds.has(entry.id));
 
-    if (availableIndexes.length === 0) {
-      usedIndexes.clear();
-      availableIndexes = whisperMessages.map((_, index) => index);
-      this.state.usedEntryIndexes = [];
+    if (availableEntries.length === 0) {
+      availableEntries = [...whisperMessages];
+      this.state.usedEntryIds = [];
     }
 
-    const index = choose(availableIndexes);
-    return { entry: whisperMessages[index], index };
+    return { entry: choose(availableEntries) };
   }
 
   private randomDelay(): number {
