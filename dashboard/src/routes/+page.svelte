@@ -57,7 +57,7 @@
 				<article><FileStack size={22} /><strong>{data.catalog?.fragments.length ?? 0}</strong><span>Fragmente</span></article>
 				<article><BookOpen size={22} /><strong>{data.catalog?.profiles.length ?? 0}</strong><span>Profilkarten</span></article>
 			</div>
-			<section class="next"><Eye size={18} /><div><strong>Erster Editor bereit</strong><span>Orakel können nun im Kuratorium mit Live-Embed-Vorschau angelegt werden.</span><a href="/oracles">Zum Orakel-Katalog</a></div></section>
+			<section class="next"><Eye size={18} /><div><strong>Redaktion bereit</strong><span>Neue Orakel, Fragmente und Profilkarten können mit Live-Embed-Vorschau angelegt werden.</span><nav><a href="/oracles">Orakel</a><a href="/fragments">Fragmente</a><a href="/profiles">Profilkarten</a></nav></div></section>
 		</section>
 	{/if}
 </main>
@@ -89,7 +89,7 @@
 	.next :global(svg) { color: #76517a; }
 	.next div { display: grid; gap: .1rem; }
 	.next span { color: var(--ink-muted); }
-	.next a { margin-top: .6rem; width: max-content; color: var(--ink); font: .75rem var(--font-ui); }
+	.next nav { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: .6rem; }.next a { width: max-content; color: var(--ink); font: .75rem var(--font-ui); }
 	code { font: .85em ui-monospace, monospace; }
 	@media (max-width: 600px) { header { padding: 0 5vw; } .identity span { display: none; } .cards { grid-template-columns: 1fr; } }
 </style>
