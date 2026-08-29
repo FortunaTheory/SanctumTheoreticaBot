@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.env
+data/whisper-state.json
+data/whisper-state.json.tmp

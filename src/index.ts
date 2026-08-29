@@ -1,0 +1,68 @@
+import { Client, Collection, Events, GatewayIntentBits, REST, Routes } from "discord.js";
+import { config } from "./config.js";
+import { pingCommand } from "./commands/ping.js";
+import { oracleCommand } from "./commands/oracle.js";
+import { fragmentCommand } from "./commands/fragment.js";
+import { profileCommand } from "./commands/profile.js";
+import { createWhisperCommand } from "./commands/whisper.js";
+import { createWhispersCommand } from "./commands/whispers.js";
+import { WhisperScheduler } from "./whisper-scheduler.js";
+import { startActivityRotation } from "./activity.js";
+import { isTeamMember } from "./permissions.js";
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const whisperScheduler = new WhisperScheduler(client);
+const commands = [pingCommand, oracleCommand, fragmentCommand, profileCommand, createWhisperCommand(whisperScheduler), createWhispersCommand(whisperScheduler)];
+const commandMap = new Collection<string, (interaction: import("discord.js").ChatInputCommandInteraction) => Promise<void>>(
+  commands.map((command) => [command.data.name, command.execute])
+);
+
+const rest = new REST({ version: "10" }).setToken(config.token);
+const commandRoute = config.guildId
+  ? Routes.applicationGuildCommands(config.clientId, config.guildId)
+  : Routes.applicationCommands(config.clientId);
+
+try {
+  await rest.put(commandRoute, { body: commands.map((command) => command.data.toJSON()) });
+} catch (error) {
+  if (error instanceof Error && "status" in error && error.status === 401) {
+    throw new Error("Discord rejected DISCORD_TOKEN (401 Unauthorized). Regenerate the bot token and update .env.");
+  }
+  throw error;
+}
+
+client.once(Events.ClientReady, (readyClient) => {
+  console.log(`Logged in as ${readyClient.user.tag}`);
+  console.log(`Registered ${commands.length} commands ${config.guildId ? "for the development guild" : "globally"}.`);
+  startActivityRotation(client);
+  void whisperScheduler.load().catch((error) => console.error("Whisper-State konnte nicht geladen werden:", error));
+});
+
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const execute = commandMap.get(interaction.commandName);
+  if (!execute) return;
+
+  if (!isTeamMember(interaction)) {
+    await interaction.reply({
+      content: "Diese Stimme bleibt vorerst hinter dem Schleier. Nur das Mod- und Admin-Team kann sie rufen.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  try {
+    await execute(interaction);
+  } catch (error) {
+    console.error(`Command ${interaction.commandName} failed:`, error);
+    const reply = { content: "Beim Öffnen dieses Eintrags ist etwas schiefgegangen.", ephemeral: true };
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp(reply);
+    } else {
+      await interaction.reply(reply);
+    }
+  }
+});
+
+await client.login(config.token);

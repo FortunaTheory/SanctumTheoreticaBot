@@ -1,0 +1,12 @@
+[
+  { "type": "watching", "name": "die Ordnung zwischen den Seiten", "mood": "analytical" },
+  { "type": "watching", "name": "die achte Falte", "mood": "analytical" },
+  { "type": "listening", "name": "Stimmen aus dem Archiv", "mood": "analytical" },
+  { "type": "watching", "name": "vergessene Namen", "mood": "analytical" },
+  { "type": "listening", "name": "das Echo hinter der Antwort", "mood": "analytical" },
+  { "type": "watching", "name": "die Ränder der Wirklichkeit", "mood": "obsessed" },
+  { "type": "listening", "name": "eine Stimme, die nicht katalogisiert ist", "mood": "obsessed" },
+  { "type": "watching", "name": "das Muster, das überall war", "mood": "obsessed" },
+  { "type": "listening", "name": "sie zählt wieder", "mood": "obsessed" },
+  { "type": "watching", "name": "[Eintrag entfernt]", "mood": "obsessed" }
+]
