@@ -404,6 +404,48 @@
 		border: 1px solid var(--line);
 		background: var(--surface-raised);
 	}
+	label {
+		display: grid;
+		gap: 0.45rem;
+		font-size: 0.9rem;
+	}
+	input,
+	select,
+	textarea {
+		width: 100%;
+		border: 1px solid var(--line);
+		border-radius: 0.25rem;
+		padding: 0.65rem;
+		color: var(--ink);
+		background: var(--surface-sunken);
+		font: inherit;
+	}
+	select {
+		cursor: pointer;
+	}
+	textarea {
+		min-height: 150px;
+		resize: vertical;
+		line-height: 1.5;
+	}
+	input[type='file'] {
+		padding: 0.45rem;
+		cursor: pointer;
+	}
+	input[type='file']::file-selector-button {
+		margin-right: 0.7rem;
+		border: 0;
+		padding: 0.35rem 0.5rem;
+		color: var(--ink);
+		background: var(--surface-deep);
+		font: 0.7rem var(--font-ui);
+		cursor: pointer;
+	}
+	label small {
+		color: var(--ink-muted);
+		font: 0.7rem var(--font-ui);
+		line-height: 1.4;
+	}
 
 	.section-header {
 		display: flex;
@@ -429,6 +471,7 @@
 	.radio-label input {
 		width: auto;
 		cursor: pointer;
+		accent-color: var(--ink-soft);
 	}
 
 	.formatting-bar {
@@ -467,6 +510,16 @@
 		background: var(--surface-sunken);
 		border: 1px dashed var(--line);
 		margin-top: 0.5rem;
+	}
+	.toggle {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+	}
+	.toggle input {
+		width: auto;
+		accent-color: var(--ink-soft);
 	}
 
 	.preset-list {
