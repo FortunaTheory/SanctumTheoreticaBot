@@ -62,7 +62,13 @@ export async function sendCuratorCard(author: Author): Promise<void> {
 	if (!card.guildId || !card.channelId) throw new Error('Trage zuerst Guild-ID und Channel-ID für die Kuratorin-Karte ein.');
 	const authorization = `Bot ${requiredEnv('DISCORD_BOT_TOKEN')}`;
 	const channelResponse = await fetch(`https://discord.com/api/v10/channels/${card.channelId}`, { headers: { Authorization: authorization } });
-	if (!channelResponse.ok) throw new Error(`Discord konnte den Zielkanal nicht prüfen (${channelResponse.status}).`);
+	if (!channelResponse.ok) {
+		const detail = await discordErrorDetail(channelResponse);
+		if (channelResponse.status === 403) {
+			throw new Error(`Der Dashboard-Bot darf den Zielkanal nicht ansehen (${detail}). Gib ihm dort mindestens „Kanal ansehen“, „Nachrichten senden“ und „Links einbetten“.`);
+		}
+		throw new Error(`Discord konnte den Zielkanal nicht prüfen (${channelResponse.status}: ${detail}).`);
+	}
 	const channel = await channelResponse.json() as { guild_id?: string };
 	if (channel.guild_id !== card.guildId) throw new Error('Die eingetragene Guild-ID gehört nicht zum gewählten Zielkanal.');
 	const embed = { color: Number.parseInt(card.color, 16), author: { name: card.author }, title: `◈ INTERNE AKTE · ${card.title}`, description: `*${card.note}*`, fields: [{ name: 'Archivstatus', value: card.status, inline: true }], footer: { text: card.footer }, timestamp: new Date().toISOString() } as Record<string, unknown>;
@@ -81,7 +87,13 @@ export async function sendCuratorCard(author: Author): Promise<void> {
 		body = JSON.stringify({ embeds: [embed] });
 	}
 	const response = await fetch(`https://discord.com/api/v10/channels/${card.channelId}/messages`, { method: 'POST', headers, body });
-	if (!response.ok) throw new Error(`Discord konnte die Kuratorin-Karte nicht senden (${response.status}).`);
+	if (!response.ok) {
+		const detail = await discordErrorDetail(response);
+		if (response.status === 403) {
+			throw new Error(`Der Dashboard-Bot darf im Zielkanal nicht posten (${detail}). Prüfe „Nachrichten senden“ und „Links einbetten“.`);
+		}
+		throw new Error(`Discord konnte die Kuratorin-Karte nicht senden (${response.status}: ${detail}).`);
+	}
 	await transaction(async (execute) => audit(execute, 'send', author, card, card));
 }
 
@@ -90,6 +102,15 @@ async function ensureCardInTransaction(execute: TransactionQuery): Promise<Curat
 	if (rows[0]) return cardSchema.parse(rows[0]);
 	const created = await execute<CuratorCard>(`INSERT INTO curator_card (singleton, title, status, note, footer, author, color, updated_by) VALUES (true, $1, $2, $3, $4, $5, $6, 'system') RETURNING title, status, note, footer, author, color, image_key AS "imageKey", guild_id AS "guildId", channel_id AS "channelId", updated_at::text AS "updatedAt", updated_by AS "updatedBy"`, [initialCard.title, initialCard.status, initialCard.note, initialCard.footer, initialCard.author, initialCard.color]);
 	return cardSchema.parse(created[0]);
+}
+
+async function discordErrorDetail(response: Response): Promise<string> {
+	try {
+		const payload = await response.json() as { message?: string };
+		return payload.message ?? 'Unbekannter Discord-Fehler';
+	} catch {
+		return 'Unbekannter Discord-Fehler';
+	}
 }
 
 function requiredEnv(name: string): string { const value = process.env[name]; if (!value) throw new Error(`${name} ist nicht konfiguriert.`); return value; }
