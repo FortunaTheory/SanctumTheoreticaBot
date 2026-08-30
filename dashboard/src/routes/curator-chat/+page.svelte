@@ -3,11 +3,9 @@
 		ArrowLeft,
 		Bot,
 		Eye,
-		Image,
 		MessageSquare,
 		Pencil,
 		Plus,
-		Radio,
 		Save,
 		Send,
 		Trash2,
@@ -96,7 +94,6 @@
 		{/if}
 
 		<div class="grid">
-			<!-- Linke Spalte: Senden-Formular -->
 			<div class="left-col">
 				<form method="POST" action="?/sendMessage" enctype="multipart/form-data" class="editor">
 					<div class="section-label"><MessageSquare size={16} /> Nachricht verfassen</div>
@@ -262,9 +259,9 @@
 				</section>
 			</div>
 
-			<!-- Rechte Spalte: Live Discord Chat Message Vorschau -->
-			<aside class="right-col">
-				<div class="section-label"><Eye size={16} /> Discord Live-Vorschau</div>
+			<div class="right-col">
+			<aside class="preview">
+				<div class="section-label"><Eye size={16} /> Discord-Vorschau</div>
 				<div class="discord-chat-container">
 					<div class="discord-message">
 						<div class="discord-avatar">
@@ -286,22 +283,75 @@
 						</div>
 					</div>
 				</div>
-
-				<div class="info-box">
-					<Radio size={16} />
-					<div>
-						<strong>Wie funktioniert der Schattenfunk?</strong>
-						<p>
-							Über Webhooks postet der Bot mit individuellem Namen und Avatar, ohne dass eine neue Discord-Anwendung benötigt wird. Der Avatar wird direkt aus eurem Railway S3-Bucket für Discord bereitgestellt.
-						</p>
-					</div>
-				</div>
 			</aside>
+			</div>
 		</div>
 	</section>
 </main>
 
 <style>
+	main {
+		min-height: 100vh;
+		background: linear-gradient(118deg, rgba(101, 48, 139, 0.2), transparent 42%),
+			repeating-linear-gradient(0deg, rgba(160, 97, 208, 0.07) 0 1px, transparent 1px 5px);
+	}
+	header {
+		height: 66px;
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+		padding: 0 5vw;
+		border-bottom: 1px solid var(--line);
+	}
+	header > a {
+		display: grid;
+		place-items: center;
+		color: var(--ink);
+	}
+	.brand {
+		display: flex;
+		gap: 0.6rem;
+		align-items: center;
+		font: 0.78rem var(--font-ui);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+	.brand span {
+		display: grid;
+		width: 30px;
+		aspect-ratio: 1;
+		place-items: center;
+		color: #fff;
+		background: var(--surface-deep);
+		font-family: var(--font-display);
+		letter-spacing: 0;
+	}
+	.shell {
+		width: min(1180px, 90vw);
+		margin: 4rem auto 7rem;
+	}
+	.heading {
+		display: flex;
+		align-items: end;
+		justify-content: space-between;
+		border-bottom: 1px solid var(--line);
+		padding-bottom: 1.5rem;
+	}
+	.eyebrow,
+	.section-label,
+	.heading > span {
+		margin: 0;
+		color: var(--ink-soft);
+		font: 0.72rem var(--font-ui);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+	h1 {
+		margin: 0.5rem 0 0;
+		font-size: clamp(3rem, 6vw, 5rem);
+		font-weight: 400;
+		line-height: 0.9;
+	}
 	.curator-tabs {
 		display: flex;
 		gap: 0.5rem;
@@ -333,9 +383,9 @@
 
 	.grid {
 		display: grid;
-		grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
-		gap: 2.5rem;
-		margin-top: 2rem;
+		grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+		gap: 3rem;
+		margin-top: 3rem;
 	}
 
 	.left-col,
@@ -346,13 +396,13 @@
 	}
 
 	.editor,
-	.presets-section {
+	.presets-section,
+	.preview {
 		display: grid;
-		gap: 1rem;
-		padding: 1.35rem;
+		gap: 1.25rem;
+		padding: 1.5rem;
 		border: 1px solid var(--line);
 		background: var(--surface-raised);
-		border-radius: 0.35rem;
 	}
 
 	.section-header {
@@ -368,7 +418,6 @@
 		padding: 0.5rem;
 		background: var(--surface-sunken);
 		border: 1px solid var(--line);
-		border-radius: 0.25rem;
 	}
 	.radio-label {
 		display: flex;
@@ -392,7 +441,6 @@
 		background: var(--surface-sunken);
 		color: var(--ink);
 		border: 1px solid var(--line);
-		border-radius: 0.2rem;
 		cursor: pointer;
 		font-size: 0.75rem;
 	}
@@ -418,7 +466,6 @@
 		padding: 1rem;
 		background: var(--surface-sunken);
 		border: 1px dashed var(--line);
-		border-radius: 0.25rem;
 		margin-top: 0.5rem;
 	}
 
@@ -434,7 +481,6 @@
 		padding: 0.65rem 0.85rem;
 		background: var(--surface-sunken);
 		border: 1px solid var(--line);
-		border-radius: 0.25rem;
 		position: relative;
 	}
 	.avatar-preview img {
@@ -483,7 +529,6 @@
 		background: var(--surface-raised);
 		border: 1px solid var(--line);
 		padding: 1rem;
-		border-radius: 0.35rem;
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 		display: grid;
 		gap: 0.65rem;
@@ -496,10 +541,9 @@
 		padding: 0.3rem;
 	}
 
-	/* Discord Chat Message Preview Box */
 	.discord-chat-container {
+		margin-top: 0;
 		background: #313338;
-		border-radius: 0.35rem;
 		padding: 1rem;
 		border-left: 4px solid var(--ink-soft);
 		font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -558,27 +602,8 @@
 		font-style: italic;
 	}
 
-	.info-box {
-		display: flex;
-		gap: 0.75rem;
-		padding: 1rem;
-		border: 1px solid var(--line);
-		background: var(--surface-raised);
-		border-radius: 0.35rem;
-		font-size: 0.85rem;
-		color: var(--ink-muted);
-		line-height: 1.45;
-	}
-	.info-box strong {
-		color: var(--ink);
-	}
-	.info-box p {
-		margin: 0.25rem 0 0;
-	}
-
 	.feedback {
 		padding: 0.75rem;
-		border-radius: 0.25rem;
 		margin-top: 1rem;
 		font-size: 0.88rem;
 	}
@@ -601,9 +626,22 @@
 	@media (max-width: 860px) {
 		.grid {
 			grid-template-columns: 1fr;
+			gap: 1rem;
 		}
 		.mode-toggle {
 			grid-template-columns: 1fr;
+		}
+		.shell {
+			margin-top: 2.5rem;
+		}
+		.heading > span {
+			display: none;
+		}
+		.curator-tabs a {
+			padding: 0.45rem;
+		}
+		.curator-tabs a :global(svg) {
+			display: none;
 		}
 	}
 </style>
