@@ -1,8 +1,10 @@
 <div align="center">
 
-# ✦ Sanctum Theoretica Bot ✦
+# ✦ Sanctum Theoretica ✦
 
-*Das Archiv flüstert. Der Bot lauscht. Die Wahrheit ist katalogisiert.*
+<img align="center" width="50%" height="50%" alt="sanctum-title-modernedit" src="https://github.com/user-attachments/assets/af105363-141a-486c-9224-7d95d190ebc6" />
+
+*Das Archiv flüstert. Die Kuratorin lauscht. Die Wahrheit ist katalogisiert.*
 
 ---
 
@@ -16,7 +18,7 @@
 
 ---
 
-Ein **Discord-Bot** für den Sanctum-Theoretica-Communityserver. Er verwaltet das interne Wissensarchiv: Orakel-Einträge, lore-basierte Fragmente, rollenspezifische Profilkarten und ein autonomes Whisper-System, das kryptische Botschaften in festgelegten Zeitfenstern verschickt. Alle Slash-Command-Namen sind bewusst englisch gehalten; die UI-Texte und Inhalte sind deutsch.
+Ein Roleplay **Discord-Bot** für den PhoenX Society-Communityserver. Er verwaltet das interne Wissensarchiv und dient als kleines Engagement-Tool: Orakel-Einträge, lore-basierte Fragmente, rollen-/userspezifische Profilkarten und ein autonomes Whisper-System, das kryptische Botschaften in festgelegten Zeitfenstern verschickt. Alle Slash-Commands sind bewusst englisch gehalten; die UI-Texte und Inhalte sind deutsch.
 
 Das Projekt besteht aus zwei Teilen:
 
@@ -46,7 +48,7 @@ Das Projekt besteht aus zwei Teilen:
 
 - **`/oracle`** — Zeigt einen zufälligen Orakel-Eintrag mit Aspekt, Text und optionalem Bild.
 - **`/fragment`** — Liefert ein archiviertes Lore-Fragment.
-- **`/profile`** — Rollenbasierte Profilkarte mit Prioritätssystem und zufälligem Wechsel bei Gleichstand.
+- **`/profile`** — Rollen-/userbasierte Profilkarte mit Prioritätssystem und zufälligem Wechsel bei Gleichstand.
 - **`/curator`** — Kuratierter Archiveintrag für Mod- und Admin-Team.
 - **`/whisper`** / **`/whisper-admin`** — Autonomes Flüster-System mit fuzzy Zeitfenstern, Zufallspool ohne Wiederholung und persistentem State.
 - **`/ping`** — Systemstatus-Check (Mod/Admin only).
@@ -161,15 +163,15 @@ Alle Variablen werden in `.env` (nie ins Repository committen) gepflegt. `.env.e
 
 Alle Commands sind ausschließlich für das **Mod- und Admin-Team** zugänglich.
 
-| Command | Beschreibung |
-|---|---|
-| `/ping` | Latenz und Systemstatus |
-| `/oracle` | Zufälliger Orakel-Eintrag aus dem Archiv |
-| `/fragment` | Zufälliges Lore-Fragment |
-| `/profile` | Rollenbasierte Profilkarte eines Teammitglieds |
-| `/curator` | Kuratierter Archiveintrag |
-| `/whisper` | Sofortige Whisper-Nachricht manuell auslösen |
-| `/whisper-admin enable\|disable\|status\|force` | Whisper-Scheduler steuern |
+| Command | Beschreibung | Permission-level |
+|---|---|---|
+| `/ping` | Latenzstatus | Admin
+| `/oracle` | Zufälliger Orakel-Eintrag aus dem Archiv | User/Admin
+| `/fragment` | Zufälliges Lore-Fragment | User/Admin
+| `/profile` | Rollenbasierte Profilkarte eines Mitglieds | User/Admin
+| `/curator` | "Die Kuratorin begrüßen" Immersion-Command! User bekommen eine kryptische ARG-Nachricht. Admins erhalten den Status aller RP-Module | User/Admin
+| `/whisper` | kryptische verwirrende Nachricht (wird geprüft auf Redundanz) | User/Admin
+| `/whisper-admin enable\|disable\|status\|force` | Whisper-Scheduler steuern | Admin
 
 ---
 
@@ -305,6 +307,9 @@ npm run seed:whispers
 
 <div align="center">
 
-*„Das Archiv vergisst nie. Der Bot auch nicht."*
+*„Das Archiv vergisst nie. Die Kuratorin auch nicht."*
+
+<img align="center" width="33%" height="33%" alt="phx-sanctum-render" src="https://github.com/user-attachments/assets/ddf17b4c-6255-4e77-bf55-3e0c632b6db0" />
+
 
 </div>
