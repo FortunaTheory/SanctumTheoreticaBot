@@ -1,50 +1,310 @@
-# Sanctum Theoretica
+<div align="center">
 
-Ein deutschsprachiger, dekorativer Schattenbot für den Communityserver. Die Slash-Command-Namen bleiben bewusst englisch.
+# ✦ Sanctum Theoretica Bot ✦
 
-## Setup
+*Das Archiv flüstert. Der Bot lauscht. Die Wahrheit ist katalogisiert.*
 
-1. Erstelle eine Discord-Anwendung und einen Bot im Discord Developer Portal.
-2. Kopiere `.env.example` nach `.env`.
-3. Setze `DISCORD_TOKEN` und `DISCORD_CLIENT_ID` in `.env`.
-4. Setze `DISCORD_GUILD_ID` für die schnelle Registrierung in deiner Test-Guild.
-5. Setze `DISCORD_MOD_ROLE_IDS` als kommaseparierte Liste der erlaubten Mod-Rollen. Administratoren haben immer Zugriff.
-6. Optional: Setze `DISCORD_WHISPER_CHANNEL_ID` als Fallback-Kanal sowie `WHISPER_MIN_HOURS` und `WHISPER_MAX_HOURS` für das fuzzy Zeitfenster.
-7. Installiere Abhängigkeiten und baue das Projekt:
+---
+
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Discord.js](https://img.shields.io/badge/discord.js-14.x-5865F2?logo=discord&logoColor=white)](https://discord.js.org/)
+[![SvelteKit](https://img.shields.io/badge/Dashboard-SvelteKit-FF3E00?logo=svelte&logoColor=white)](https://kit.svelte.dev/)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+
+</div>
+
+---
+
+Ein **Discord-Bot** für den Sanctum-Theoretica-Communityserver. Er verwaltet das interne Wissensarchiv: Orakel-Einträge, lore-basierte Fragmente, rollenspezifische Profilkarten und ein autonomes Whisper-System, das kryptische Botschaften in festgelegten Zeitfenstern verschickt. Alle Slash-Command-Namen sind bewusst englisch gehalten; die UI-Texte und Inhalte sind deutsch.
+
+Das Projekt besteht aus zwei Teilen:
+
+| Komponente | Technologie | Zweck |
+|---|---|---|
+| **Bot** (`/src`) | TypeScript · discord.js 14 · Node.js ≥ 20 | Slash-Commands, Whisper-Scheduler, Activity-Rotation |
+| **Dashboard** (`/dashboard`) | SvelteKit · Tailwind CSS 4 · PostgreSQL | Web-UI für Content-Verwaltung und Admin-Einstellungen |
+
+---
+
+## Inhaltsverzeichnis
+
+- [Features](#features)
+- [Architektur](#architektur)
+- [Voraussetzungen](#voraussetzungen)
+- [Schnellstart](#schnellstart)
+- [Umgebungsvariablen](#umgebungsvariablen)
+- [Slash-Commands](#slash-commands)
+- [Whisper-System](#whisper-system)
+- [Content-Datenformat](#content-datenformat)
+- [Dashboard](#dashboard)
+- [Deployment](#deployment)
+
+---
+
+## Features
+
+- **`/oracle`** — Zeigt einen zufälligen Orakel-Eintrag mit Aspekt, Text und optionalem Bild.
+- **`/fragment`** — Liefert ein archiviertes Lore-Fragment.
+- **`/profile`** — Rollenbasierte Profilkarte mit Prioritätssystem und zufälligem Wechsel bei Gleichstand.
+- **`/curator`** — Kuratierter Archiveintrag für Mod- und Admin-Team.
+- **`/whisper`** / **`/whisper-admin`** — Autonomes Flüster-System mit fuzzy Zeitfenstern, Zufallspool ohne Wiederholung und persistentem State.
+- **`/ping`** — Systemstatus-Check (Mod/Admin only).
+- **Activity-Rotation** — Bot-Status wechselt zufällig alle 15–45 Minuten zwischen `watching`- und `listening`-Typen; direkte Wiederholung wird unterdrückt.
+- **Runtime-Config-Refresh** — Der Bot lädt Konfiguration alle 30 Sekunden aus der Datenbank — kein Neustart nötig für Rollen- und Channel-Änderungen.
+- **Bild-Normalisierung** — Alle Decals aus `decals/` werden via `sharp` einheitlich auf eine dunkle 16:9-Fläche skaliert.
+
+---
+
+## Architektur
+
+```
+SanctumTheoreticaBot/
+├── src/                        # Bot (Node.js · TypeScript)
+│   ├── commands/               # Slash-Command-Handler
+│   │   ├── oracle.ts
+│   │   ├── fragment.ts
+│   │   ├── profile.ts
+│   │   ├── curator.ts
+│   │   ├── whisper.ts
+│   │   ├── whisper-admin.ts
+│   │   └── ping.ts
+│   ├── activity.ts             # Activity-Rotation
+│   ├── config.ts               # Env-Parsing
+│   ├── content-database.ts     # PostgreSQL / JSON-Fallback
+│   ├── design.ts               # Embed-Styling
+│   ├── easter-eggs.ts
+│   ├── lore.ts
+│   ├── permissions.ts          # Mod/Admin-Prüfung
+│   ├── runtime-config.ts       # Live-Config aus DB
+│   ├── whisper-scheduler.ts    # Fuzzy-Timer-Logik
+│   ├── whisper-state.ts        # Persistenter Pool-State
+│   └── index.ts                # Einstiegspunkt
+├── dashboard/                  # Web-Dashboard (SvelteKit)
+│   ├── db/                     # Migrations & Schema
+│   ├── scripts/                # Migrate / Seed-Skripte
+│   └── src/                    # SvelteKit-App
+├── data/                       # JSON-Inhalte (Fallback / Seed-Basis)
+│   ├── oracle.json
+│   ├── fragments.json
+│   ├── profiles.json
+│   ├── activities.json
+│   ├── whispers.json
+│   └── whisper-targets.json
+├── decals/                     # Bilder für Embeds
+├── .env.example
+└── tsconfig.json
+```
+
+---
+
+## Voraussetzungen
+
+- **Node.js ≥ 20**
+- **npm ≥ 10**
+- Eine [Discord-Anwendung](https://discord.com/developers/applications) mit aktiviertem Bot und den Scopes `bot` + `applications.commands`
+- Optional: **PostgreSQL**-Instanz für das Dashboard und den DB-Modus des Bots
+
+---
+
+## Schnellstart
 
 ```bash
+# 1. Repository klonen
+git clone https://github.com/FortunaTheory/SanctumTheoreticaBot.git
+cd SanctumTheoreticaBot
+
+# 2. Umgebungsvariablen anlegen
+cp .env.example .env
+# → .env mit echten Werten befüllen (siehe Abschnitt unten)
+
+# 3. Abhängigkeiten installieren & bauen
 npm install
 npm run build
+
+# 4. Bot starten
 npm start
 ```
 
-Für die Entwicklung mit automatischem TypeScript-Neuladen:
+Für die Entwicklung mit Hot-Reload:
 
 ```bash
 npm run dev
 ```
 
-Der aktuelle Umfang enthält `/ping`, `/oracle`, `/fragment` und `/profile`. Alle Commands sind zunächst nur für das Mod- und Admin-Team verfügbar. Begrüßungen, automatische Ankündigungen und öffentliche Community-Funktionen sind nicht aktiviert.
+---
 
-Das Whisper-System wird ausschließlich vom Team über `/whisper-admin enable|disable|status|force` gesteuert. `enable` speichert den aktuellen Kanal dauerhaft; alternativ wird `DISCORD_WHISPER_CHANNEL_ID` verwendet. Mit gesetzter `DATABASE_URL` liest der Scheduler Stimmen und Zielpersonen aus PostgreSQL, sodass Änderungen im Dashboard ohne Bot-Neustart wirksam werden. Der Pool verwendet jede Whisper-UUID genau einmal, bevor er sich zurücksetzt. Ohne Datenbank bleibt `data/whispers.json` mit `data/whisper-targets.json` als Fallback aktiv. Der Laufzeitstatus liegt in `data/whisper-state.json` und wird nicht versioniert.
+## Umgebungsvariablen
 
-Oracle-Einträge liegen in `data/oracle.json`, Fragment-Einträge in `data/fragments.json` und Profilkarten in `data/profiles.json`. Oracle-Einträge enthalten `aspect`, `text` und optional `image`; Fragment-Einträge enthalten `title`, `text` und optional `image`. Profilkarten können nach Rollen-ID mit `author`, `title`, `status`, `note`, `footer`, `color`, `priority` und optional `image` angepasst werden. Mehrere Karten mit derselben Rollen-ID und Priorität werden zufällig gewechselt; höhere Prioritäten gewinnen. Verknüpfte Bilder werden aus `decals/` geladen und vor dem Versand einheitlich auf eine dunkle 16:9-Fläche normalisiert. Bei Deployment müssen deshalb `data/` und `decals/` neben dem Projekt mit ausgeliefert werden.
+Alle Variablen werden in `.env` (nie ins Repository committen) gepflegt. `.env.example` dient als Vorlage.
 
-Die Activity-Texte liegen in `data/activities.json`. Jeder Eintrag enthält `type` (`watching` oder `listening`), `name` und `mood` (`analytical` oder `obsessed`). Die Activity wechselt zufällig alle 15 bis 45 Minuten; direkte Wiederholungen werden vermieden.
+| Variable | Pflicht | Beschreibung |
+|---|---|---|
+| `DISCORD_TOKEN` | ✅ | Bot-Token aus dem Developer Portal |
+| `DISCORD_CLIENT_ID` | ✅ | Application-ID der Discord-App |
+| `DISCORD_GUILD_ID` | ⬜ | Guild-ID für guild-scope Command-Registrierung (schneller für Tests) |
+| `DISCORD_MOD_ROLE_IDS` | ✅ | Kommaseparierte Rollen-IDs mit Bot-Zugriff; Admins haben immer Zugriff |
+| `DISCORD_WHISPER_CHANNEL_ID` | ⬜ | Fallback-Kanal für Whisper-Nachrichten |
+| `WHISPER_MIN_HOURS` | ⬜ | Minimales Zeitfenster zwischen Whispers (Standard: `24`) |
+| `WHISPER_MAX_HOURS` | ⬜ | Maximales Zeitfenster zwischen Whispers (Standard: `32`) |
+| `WHISPER_STATE_PATH` | ⬜ | Pfad zur State-Datei (Standard: `data/whisper-state.json`) |
+| `DATABASE_URL` | ⬜ | PostgreSQL-Connection-String; ohne DB werden JSON-Fallbacks verwendet |
+| `AWS_ENDPOINT_URL` | ⬜ | S3-kompatibler Endpoint (z. B. Railway Bucket) |
+| `AWS_ACCESS_KEY_ID` | ⬜ | S3-Access-Key |
+| `AWS_SECRET_ACCESS_KEY` | ⬜ | S3-Secret |
+| `AWS_S3_BUCKET_NAME` | ⬜ | Bucket-Name für Decals |
+| `AWS_DEFAULT_REGION` | ⬜ | Region (Standard: `auto`) |
 
-## Dashboard-Inhalte
+---
 
-Das Dashboard verwaltet Orakel, Fragmente, Profilkarten sowie Whisper-Stimmen und -Zielpersonen. Nach dem Deploy der Whisper-Erweiterung im Dashboard-Service einmal ausführen:
+## Slash-Commands
+
+Alle Commands sind ausschließlich für das **Mod- und Admin-Team** zugänglich.
+
+| Command | Beschreibung |
+|---|---|
+| `/ping` | Latenz und Systemstatus |
+| `/oracle` | Zufälliger Orakel-Eintrag aus dem Archiv |
+| `/fragment` | Zufälliges Lore-Fragment |
+| `/profile` | Rollenbasierte Profilkarte eines Teammitglieds |
+| `/curator` | Kuratierter Archiveintrag |
+| `/whisper` | Sofortige Whisper-Nachricht manuell auslösen |
+| `/whisper-admin enable\|disable\|status\|force` | Whisper-Scheduler steuern |
+
+---
+
+## Whisper-System
+
+Das Whisper-System versendet autonom kryptische Nachrichten an definierte Zielpersonen.
+
+- **Steuerung** ausschließlich via `/whisper-admin`:
+  - `enable` — aktiviert den Scheduler und speichert den aktuellen Kanal dauerhaft
+  - `disable` — pausiert den Scheduler
+  - `status` — zeigt aktuellen State inkl. nächster geplanter Sendung
+  - `force` — löst sofort einen Whisper aus (ignoriert Timer)
+- **Fuzzy-Zeitfenster** zwischen `WHISPER_MIN_HOURS` und `WHISPER_MAX_HOURS`
+- **Pool-Logik**: Jede Whisper-UUID wird genau einmal verwendet; nach Erschöpfung des Pools automatischer Reset
+- **State-Persistenz**: `data/whisper-state.json` (nicht versioniert) — Neustart-sicher
+- **Datenquelle**: Mit `DATABASE_URL` aus PostgreSQL; ohne DB aus `data/whispers.json` und `data/whisper-targets.json`
+
+---
+
+## Content-Datenformat
+
+### `data/oracle.json`
+```json
+[
+  {
+    "aspect": "Der Schleier",
+    "text": "Was verborgen liegt, wartet geduldig auf den richtigen Blick.",
+    "image": "optional-decal-filename.png"
+  }
+]
+```
+
+### `data/fragments.json`
+```json
+[
+  {
+    "title": "Archivfragment VII",
+    "text": "Der Katalog enthält Lücken. Absichtlich.",
+    "image": "optional-decal-filename.png"
+  }
+]
+```
+
+### `data/profiles.json`
+Profilkarten werden nach Rollen-ID zugewiesen. Mehrere Karten mit gleicher `priority` werden zufällig rotiert; höhere Werte gewinnen.
+```json
+[
+  {
+    "roleId": "123456789012345678",
+    "author": "Das Archiv",
+    "title": "Hüterin der Fragmente",
+    "status": "aktiv",
+    "note": "Spezialisiert auf verlorene Einträge.",
+    "footer": "Sanctum Theoretica — intern",
+    "color": "#2b2b3d",
+    "priority": 1,
+    "image": "optional-decal-filename.png"
+  }
+]
+```
+
+### `data/activities.json`
+```json
+[
+  { "type": "watching", "name": "das Archiv", "mood": "analytical" },
+  { "type": "listening", "name": "den Flüstern", "mood": "obsessed" }
+]
+```
+
+> Bilder werden aus `decals/` geladen und via `sharp` auf eine einheitliche dunkle 16:9-Fläche normalisiert.
+
+---
+
+## Dashboard
+
+Das Dashboard (SvelteKit + Tailwind CSS) verwaltet alle Inhalte und Konfigurationen über eine Web-UI.
 
 ```bash
+cd dashboard
+cp .env.example .env     # DATABASE_URL und weitere Variablen setzen
+
+npm install
+
+# Datenbankschema anlegen
 npm run migrate
+
+# Initiale JSON-Inhalte importieren (einmalig)
+npm run seed
+
+# Whisper-Daten aus JSON importieren (einmalig, schützt vor Duplikaten)
+npm run seed:whispers
+
+# Entwicklung
+npm run dev
+
+# Produktion
+npm run build
+npm start
+```
+
+### Admin-Bereich (`/admin`)
+
+Nur für `OWNER_DISCORD_ID` zugänglich. Verwaltet:
+
+- Community-Guild-ID
+- Team-Rollen
+- Dashboard-Nutzer
+- Whisper-Fallback-Kanal und Zeitfenster
+
+> Rollen- und Whisper-Änderungen werden vom Bot innerhalb von **30 Sekunden** übernommen. Eine geänderte Guild-ID erfordert einen Bot-Redeploy für die Command-Registrierung.
+
+---
+
+## Deployment
+
+Bei jedem Deployment müssen die Verzeichnisse **`data/`** und **`decals/`** neben dem Projektverzeichnis vorhanden sein.
+
+**Empfohlener Stack:** [Railway](https://railway.app/) mit separaten Services für Bot, Dashboard und PostgreSQL sowie einem Railway-Bucket für Decal-Assets.
+
+Minimale Schritte für ein frisches Deployment:
+
+```bash
+# Bot-Service
+npm install && npm run build && npm start
+
+# Dashboard-Service (einmalig nach erstem Deploy)
+npm run migrate
+npm run seed
 npm run seed:whispers
 ```
 
-Der zweite Befehl importiert die bisherigen neun JSON-Whisper und zwei Zielpersonen genau einmal und verweigert weitere Läufe, um Duplikate zu verhindern.
+---
 
-## Owner-Administration
+<div align="center">
 
-Der Bereich `/admin` im Dashboard ist ausschließlich für `OWNER_DISCORD_ID` vorgesehen. Dort werden nicht geheime Laufzeitwerte gepflegt: Community-Guild, Teamrollen, weitere Dashboard-Nutzer, Whisper-Fallback-Kanal und Zeitfenster. Nach dem Deploy der Administration einmal `npm run migrate` im Dashboard-Service ausführen und dort `OWNER_DISCORD_ID` als Railway-Variable setzen. Rollen- und Whisper-Änderungen werden vom Bot spätestens nach 30 Sekunden übernommen. Eine geänderte Guild-ID wird gespeichert, benötigt für die Discord-Command-Registrierung aber einen Bot-Redeploy.
+*„Das Archiv vergisst nie. Der Bot auch nicht."*
 
-Lade den Bot mit den Scopes `bot` und `applications.commands` ein. Für `/profile` wird zunächst nur ein Teammitglied aus dem internen Archiv akzeptiert.
+</div>
