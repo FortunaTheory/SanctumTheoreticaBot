@@ -44,9 +44,9 @@ export type Catalog = {
 
 const revisionSchema = z.object({
 	id: z.coerce.number().int().positive(),
-	resourceType: z.enum(['oracle', 'fragment', 'profile', 'whisper', 'whisper_target']),
-	resourceId: z.string().uuid(),
-	action: z.enum(['create', 'update', 'delete', 'restore']),
+	resourceType: z.enum(['oracle', 'fragment', 'profile', 'whisper', 'whisper_target', 'admin_config', 'curator_card']),
+	resourceId: z.union([z.string().uuid(), z.literal('00000000-0000-0000-0000-000000000004'), z.literal('00000000-0000-0000-0000-000000000006')]),
+	action: z.enum(['create', 'update', 'delete', 'restore', 'send']),
 	authorId: z.string(),
 	authorName: z.string(),
 	previousValue: z.unknown().nullable(),
@@ -261,7 +261,7 @@ export async function restoreRevision(revisionId: number, author: Author): Promi
 		if (revision.action === 'create' || !revision.previousValue) {
 			throw new Error('Diese Revision besitzt keinen früheren Zustand zum Wiederherstellen.');
 		}
-		if (revision.resourceType === 'whisper' || revision.resourceType === 'whisper_target') {
+		if (revision.resourceType === 'whisper' || revision.resourceType === 'whisper_target' || revision.resourceType === 'admin_config' || revision.resourceType === 'curator_card') {
 			throw new Error('Whisper-Revisionen können derzeit nicht automatisch wiederhergestellt werden.');
 		}
 

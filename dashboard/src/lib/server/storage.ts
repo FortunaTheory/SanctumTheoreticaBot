@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 
 const maxImageBytes = 5 * 1024 * 1024;
@@ -50,4 +50,13 @@ export async function uploadImage(file: File, kind: AssetKind): Promise<string> 
 		CacheControl: 'public, max-age=31536000, immutable'
 	}));
 	return key;
+}
+
+export async function loadImage(key: string): Promise<{ body: Buffer; contentType: string }> {
+	const result = await getStorageClient().send(new GetObjectCommand({ Bucket: requiredEnv('AWS_S3_BUCKET_NAME'), Key: key }));
+	if (!result.Body) throw new Error('Das gespeicherte Visual konnte nicht geladen werden.');
+	return {
+		body: Buffer.from(await result.Body.transformToByteArray()),
+		contentType: result.ContentType ?? 'image/png'
+	};
 }
