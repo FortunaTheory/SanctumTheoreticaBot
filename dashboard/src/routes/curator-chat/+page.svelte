@@ -28,9 +28,11 @@
 
 	// Active Persona derived
 	let activePersona = $derived(
-		data.personas.find((p) => p.id === selectedPersonaId) ??
-			data.personas.find((p) => p.isDefault) ??
-			data.personas[0]
+		data.personas.length > 0
+			? data.personas.find((p: typeof data.personas[number]) => p.id === selectedPersonaId) ??
+			  data.personas.find((p: typeof data.personas[number]) => p.isDefault) ??
+			  data.personas[0]
+			: undefined
 	);
 
 	let previewName = $derived(customName.trim() || activePersona?.name || 'Die Kuratorin');
@@ -87,6 +89,10 @@
 		{/if}
 		{#if form?.personaDeleted}
 			<p class="feedback success">Charakter-Preset wurde entfernt.</p>
+		{/if}
+
+		{#if data.personas.length === 0}
+			<p class="feedback warning">Keine Charakter-Presets geladen. Die Datenbank ist möglicherweise nicht erreichbar oder die Tabelle existiert noch nicht.</p>
 		{/if}
 
 		<div class="grid">
@@ -585,6 +591,11 @@
 		color: var(--success);
 		border-left: 3px solid var(--success);
 		background: rgba(143, 224, 173, 0.08);
+	}
+	.warning {
+		color: #ffb84d;
+		border-left: 3px solid #ffb84d;
+		background: rgba(255, 184, 77, 0.08);
 	}
 
 	@media (max-width: 860px) {

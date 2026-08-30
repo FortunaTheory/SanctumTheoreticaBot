@@ -21,8 +21,17 @@ function requireOwner(cookies: Parameters<typeof getDashboardUser>[0]) {
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	requireOwner(cookies);
+	
+	let personas: Awaited<ReturnType<typeof loadPersonas>> = [];
+	try {
+		personas = await loadPersonas();
+	} catch (err) {
+		console.error('Failed to load curator personas:', err);
+		// Return empty list on error; the UI will still render
+	}
+	
 	return {
-		personas: await loadPersonas()
+		personas
 	};
 };
 
