@@ -28,9 +28,24 @@ const commandMap = new Collection<string, (interaction: import("discord.js").Cha
   commands.map((command) => [command.data.name, command.execute])
 );
 
+async function withTimeout<T>(operation: Promise<T>, message: string, timeoutMs = 15_000): Promise<T> {
+  let timeout: NodeJS.Timeout | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => reject(new Error(message)), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 const rest = new REST({ version: "10" }).setToken(config.token);
+console.log("Loading runtime configuration.");
 try {
-  await refreshRuntimeConfig();
+  await withTimeout(refreshRuntimeConfig(), "Runtime-Konfiguration konnte nicht innerhalb von 15 Sekunden geladen werden.");
 } catch (error) {
   console.error("Runtime-Konfiguration konnte vor der Command-Registrierung nicht geladen werden:", error);
 }
@@ -43,15 +58,20 @@ if (!registrationGuildId) {
   console.warn("DISCORD_GUILD_ID is not set; commands will be registered globally.");
 }
 
+console.log(`Registering ${commands.length} commands ${registrationGuildId ? "for the configured guild" : "globally"}.`);
 try {
-  await rest.put(commandRoute, { body: commands.map((command) => command.data.toJSON()) });
+  await withTimeout(
+    rest.put(commandRoute, { body: commands.map((command) => command.data.toJSON()) }),
+    "Discord command registration timed out after 15 seconds."
+  );
 } catch (error) {
   if (error instanceof Error && "status" in error && error.status === 401) {
     throw new Error("Discord rejected DISCORD_TOKEN (401 Unauthorized). Regenerate the bot token and update .env.");
   }
-  throw error;
+  console.error("Discord command registration failed; continuing with the last registered command set:", error);
 }
 
+console.log("Connecting to Discord Gateway.");
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);
   console.log(`Registered ${commands.length} commands ${registrationGuildId ? "for the configured guild" : "globally"}.`);
