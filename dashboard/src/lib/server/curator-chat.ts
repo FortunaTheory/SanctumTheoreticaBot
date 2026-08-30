@@ -199,15 +199,15 @@ export async function sendChatMessage(input: SendChatMessageInput, author: Autho
 	let username = 'Die Kuratorin';
 	let avatarUrl: string | undefined = undefined;
 
-	if (input.personaId) {
-		const personas = await loadPersonas();
-		const selected = personas.find((p) => p.id === input.personaId);
-		if (selected) {
-			username = selected.name;
-			if (selected.imageKey) {
-				const dashboardUrl = requiredEnv('DASHBOARD_URL').replace(/\/$/, '');
-				avatarUrl = `${dashboardUrl}/media/avatar/${selected.imageKey}`;
-			}
+	const personas = await loadPersonas();
+	const selected = input.personaId
+		? personas.find((persona) => persona.id === input.personaId)
+		: personas.find((persona) => persona.isDefault) ?? personas[0];
+	if (selected) {
+		username = selected.name;
+		if (selected.imageKey) {
+			const dashboardUrl = requiredEnv('DASHBOARD_URL').replace(/\/$/, '');
+			avatarUrl = `${dashboardUrl}/media/avatar/${selected.imageKey}`;
 		}
 	}
 
