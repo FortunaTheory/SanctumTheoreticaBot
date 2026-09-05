@@ -84,6 +84,15 @@ export function getDiscordAuthorizeUrl(state: string): string {
 }
 
 export async function authenticateDiscordCode(code: string): Promise<DashboardUser> {
+	let runtimeConfig;
+	try {
+		runtimeConfig = await loadBotConfig();
+	} catch (error) {
+		console.warn('Dashboard authorization falls back to environment configuration:', error);
+	}
+	const guildId = runtimeConfig?.guildId ?? process.env.DISCORD_GUILD_ID;
+	if (!guildId) throw new Error('No Discord guild is configured for dashboard authorization.');
+
 	const callbackUrl = `${requiredEnv('DASHBOARD_URL')}/auth/callback`;
 	const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
 		method: 'POST',
@@ -97,17 +106,11 @@ export async function authenticateDiscordCode(code: string): Promise<DashboardUs
 	const identityResponse = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: `Bearer ${token.access_token}` } });
 	if (!identityResponse.ok) throw new Error('Discord identity lookup failed.');
 	const identity = await identityResponse.json() as DiscordIdentity;
-	const memberResponse = await fetch(`https://discord.com/api/guilds/${requiredEnv('DISCORD_GUILD_ID')}/members/${identity.id}`, {
+	const memberResponse = await fetch(`https://discord.com/api/guilds/${guildId}/members/${identity.id}`, {
 		headers: { Authorization: `Bot ${requiredEnv('DISCORD_BOT_TOKEN')}` }
 	});
 	if (!memberResponse.ok) throw new Error('Discord guild membership lookup failed.');
 	const member = await memberResponse.json() as DiscordMember;
-	let runtimeConfig;
-	try {
-		runtimeConfig = await loadBotConfig();
-	} catch (error) {
-		console.warn('Dashboard authorization falls back to environment configuration:', error);
-	}
 	const allowedRoles = runtimeConfig?.modRoleIds ?? (process.env.DISCORD_MOD_ROLE_IDS ?? '').split(',').map((role) => role.trim()).filter(Boolean);
 	const allowedUserIds = runtimeConfig?.dashboardAllowedUserIds ?? (process.env.DASHBOARD_ALLOWED_USER_IDS ?? '').split(',').map((userId) => userId.trim()).filter(Boolean);
 	const isAdministrator = member.permissions !== undefined
